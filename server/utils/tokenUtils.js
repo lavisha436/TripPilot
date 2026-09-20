@@ -24,7 +24,7 @@ export const generateTokenAndSetCookie = (res, payload) => {
   const cookieOptions = {
     httpOnly: true,
     secure: ENV.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: Number(ENV.JWT_COOKIE_EXPIRES_IN || 7) * 24 * 60 * 60 * 1000 // Convert days to milliseconds
   };
 
@@ -40,7 +40,7 @@ export const clearTokenCookie = (res) => {
   res.cookie('token', '', {
     httpOnly: true,
     secure: ENV.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: ENV.NODE_ENV === 'production' ? 'none' : 'lax',
     expires: new Date(0)
   });
 };
