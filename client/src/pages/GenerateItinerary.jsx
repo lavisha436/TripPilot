@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import {
+  Wand2,
+  MapPin,
+  Clock
+} from 'lucide-react';
 
 /**
- * 🤖 GenerateItinerary Page Component: AI-powered day-by-day itinerary generator, preview, and batch persistence handler.
+ * 🧭 GenerateItinerary Page Component: Day-by-day itinerary generator, preview, and candidate persistence handler.
  */
 export default function GenerateItinerary() {
   const { tripId } = useParams();
@@ -57,20 +62,45 @@ export default function GenerateItinerary() {
     return `${hours}:${minutes} ${ampm}`;
   };
 
+  // Calculates effective itinerary budget:
+  // 1. Prefer explicitly allocated positive itineraryBudget (>0)
+  // 2. Otherwise calculate unreserved budget (estimated - reserved total)
+  // 3. Otherwise fall back to total estimated budget (>0)
+  const getEffectiveItineraryBudget = (tripObj) => {
+    if (!tripObj || !tripObj.budget) return 0;
+    const itin = Number(tripObj.budget.itineraryBudget);
+    const est = Number(tripObj.budget.estimated);
+    const reservedTotal =
+      (Number(tripObj.budget.reserved?.intercityTransport) || 0) +
+      (Number(tripObj.budget.reserved?.accommodation) || 0) +
+      (Number(tripObj.budget.reserved?.buffer) || 0);
+
+    if (Number.isFinite(itin) && itin > 0) return itin;
+    if (Number.isFinite(est) && est > 0) {
+      const remaining = est - reservedTotal;
+      return remaining > 0 ? remaining : est;
+    }
+    return 0;
+  };
+
   const handleGenerate = async () => {
     if (!trip) return;
     setGenerating(true);
     setError('');
 
     const durationDays = calculateDurationDays(trip.startDate, trip.endDate);
+    const itineraryBudgetAmount = getEffectiveItineraryBudget(trip);
 
-    const itineraryBudgetAmount =
-      trip.budget?.itineraryBudget !== undefined &&
-      trip.budget?.itineraryBudget !== null
-        ? trip.budget.itineraryBudget
-        : trip.budget?.estimated;
+    if (!itineraryBudgetAmount || itineraryBudgetAmount <= 0) {
+      setError(
+        'A valid trip budget is required to generate an itinerary. Please set or update your trip budget.'
+      );
+      setGenerating(false);
+      return;
+    }
 
     const payload = {
+      tripId: trip._id,
       destination: trip.destination,
       budget: itineraryBudgetAmount,
       travelerCount: trip.travelerCount || 1,
@@ -86,7 +116,7 @@ export default function GenerateItinerary() {
       setItinerary(generatedItinerary);
     } catch (err) {
       const errorMessage =
-        err.response?.data?.message || 'Failed to generate AI itinerary. Please try again.';
+        err.response?.data?.message || 'Failed to generate itinerary. Please try again.';
       setError(errorMessage);
     } finally {
       setGenerating(false);
@@ -122,7 +152,7 @@ export default function GenerateItinerary() {
       });
 
       const timeString = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      const candidateTitle = `AI Itinerary (${trip?.destination || 'Option'}) - ${timeString}`;
+      const candidateTitle = `Smart Itinerary (${trip?.destination || 'Option'}) - ${timeString}`;
 
       const candidatePayload = {
         title: candidateTitle,
@@ -144,154 +174,189 @@ export default function GenerateItinerary() {
     }
   };
 
+  const effectiveItineraryBudget = getEffectiveItineraryBudget(trip);
+
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '680px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">🤖 AI Travel Assistant</div>
-
-        {loadingTrip && (
-          <div className="placeholder-box" style={{ textAlign: 'center' }}>
-            <p>Loading trip details...</p>
-          </div>
-        )}
-
-        {!loadingTrip && error && (
-          <div className="alert alert-error">{error}</div>
-        )}
-
-        {!loadingTrip && trip && (
-          <div>
-            <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '8px' }}>
-              Generate Itinerary for {trip.title}
-            </h1>
-            <p className="hero-subtitle" style={{ fontSize: '1rem', marginBottom: '20px' }}>
-              Destination: <strong style={{ color: '#38bdf8' }}>{trip.destination}</strong> •{' '}
-              {calculateDurationDays(trip.startDate, trip.endDate)} Days
-            </p>
-
-            {/* Initial State / Generator trigger */}
-            {!itinerary && (
-              <div
-                className="placeholder-box"
-                style={{ textAlign: 'center', padding: '32px 20px', borderStyle: 'solid', marginBottom: '24px' }}
-              >
-                <p style={{ color: '#cbd5e1', marginBottom: '16px', fontSize: '0.95rem' }}>
-                  Let TripPilot AI construct a day-by-day travel schedule tailored to your interests, budget, and travel style.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleGenerate}
-                  disabled={generating}
-                  className="btn btn-primary"
-                  style={{ fontSize: '1rem', padding: '12px 28px' }}
-                >
-                  {generating ? 'Generating your itinerary...' : '✨ Generate AI Itinerary'}
-                </button>
-              </div>
-            )}
-
-            {/* Preview Section */}
-            {itinerary && (
-              <div>
-                <div
-                  className="alert"
-                  style={{
-                    background: 'rgba(56, 189, 248, 0.15)',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    color: '#7dd3fc',
-                    textAlign: 'center',
-                    marginBottom: '20px'
-                  }}
-                >
-                  ℹ️ AI-generated preview — review before saving.
-                </div>
-
-                {saving && saveProgress && (
-                  <div className="alert alert-success" style={{ textAlign: 'center', marginBottom: '20px' }}>
-                    ⏳ {saveProgress}
+    <div className="tp-workspace-content-inner" style={{ maxWidth: '820px' }}>
+          {loadingTrip ? (
+            <div className="tp-workspace-loading-box">
+              <p>Loading trip details...</p>
+            </div>
+          ) : error && !trip ? (
+            <div className="alert alert-error" style={{ marginBottom: '20px' }}>
+              {error}
+            </div>
+          ) : trip ? (
+            <>
+              {/* Main Content Header */}
+              <header className="tp-trip-overview-header" style={{ marginBottom: '28px' }}>
+                <div className="tp-trip-overview-header-left">
+                  <div className="tp-trip-overview-eyebrow">
+                    <span className="tp-trip-overview-line" />
+                    <span>TRIP PLANNING</span>
                   </div>
-                )}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
-                  {itinerary.map((day) => (
-                    <div
-                      key={day.dayNumber}
-                      className="placeholder-box"
-                      style={{ marginBottom: '0', textAlign: 'left', borderStyle: 'solid' }}
-                    >
-                      <h3 style={{ color: '#ffffff', fontSize: '1.2rem', marginBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px' }}>
-                        Day {day.dayNumber} — {day.title}
-                      </h3>
+                  <h1 className="tp-trip-overview-title" style={{ fontSize: '2.4rem', marginBottom: '8px' }}>
+                    Create Your Itinerary
+                  </h1>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {day.activities?.map((act, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              background: 'rgba(15, 23, 42, 0.6)',
-                              padding: '12px 16px',
-                              borderRadius: '12px',
-                              border: '1px solid rgba(255, 255, 255, 0.08)'
-                            }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                              <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.85rem' }}>
-                                ⏰ {formatTimeTo12Hour(act.time) || 'Schedule'}
-                              </span>
-                              <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
-                                ⏱️ {act.estimatedDurationMinutes} min
-                              </span>
-                            </div>
-                            <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '4px' }}>
-                              {act.title}
-                            </h4>
-                            {act.description && (
-                              <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '6px' }}>
-                                {act.description}
-                              </p>
-                            )}
-                            <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem', color: '#94a3b8' }}>
-                              {act.locationName && <span>📍 {act.locationName}</span>}
-                              <span>💰 ₹{act.estimatedCost}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  <div className="tp-generate-header-context">
+                    <div className="tp-generate-trip-title">{trip.title}</div>
+                    <div className="tp-generate-trip-details">
+                      <MapPin size={15} className="tp-generate-pin" />
+                      <span>{trip.destination}</span>
+                      <span className="tp-meta-dot">•</span>
+                      <span>{calculateDurationDays(trip.startDate, trip.endDate)} Days</span>
+                      {effectiveItineraryBudget > 0 && (
+                        <>
+                          <span className="tp-meta-dot">•</span>
+                          <span>
+                            {trip.budget?.currency === 'INR' ? '₹' : `${trip.budget?.currency || '₹'} `}
+                            {effectiveItineraryBudget.toLocaleString()} Itinerary Budget
+                          </span>
+                        </>
+                      )}
                     </div>
-                  ))}
+                  </div>
                 </div>
+              </header>
 
-                {/* Preview Actions */}
-                <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
+              {effectiveItineraryBudget <= 0 && !error && (
+                <div
+                  className="tp-create-trip-alert tp-create-trip-alert-warning"
+                  style={{ marginBottom: '20px' }}
+                >
+                  <span>
+                    No budget has been set for this trip yet. Please{' '}
+                    <Link
+                      to={`/dashboard/trip/${tripId}/edit`}
+                      style={{ fontWeight: 600, color: '#b45309', textDecoration: 'underline' }}
+                    >
+                      set an estimated trip budget
+                    </Link>{' '}
+                    to enable personalized itinerary generation.
+                  </span>
+                </div>
+              )}
+
+              {error && (
+                <div className="alert alert-error" style={{ marginBottom: '20px' }}>
+                  {error}
+                </div>
+              )}
+
+              {/* Initial State / Generator trigger */}
+              {!itinerary && (
+                <div className="tp-generate-panel">
+                  <div className="tp-generate-icon-box">
+                    <Wand2 size={28} />
+                  </div>
+                  <h2 className="tp-generate-panel-title">Build Your Journey</h2>
+                  <p className="tp-generate-panel-desc">
+                    TripPilot will curate a personalized day-by-day itinerary tailored to your travel preferences, budget, duration, and selected interests.
+                  </p>
                   <button
                     type="button"
-                    onClick={handleAcceptAndSave}
-                    disabled={saving}
-                    className="btn btn-primary"
-                    style={{ flex: '1' }}
+                    onClick={handleGenerate}
+                    disabled={generating || effectiveItineraryBudget <= 0}
+                    className="tp-generate-action-btn"
                   >
-                    {saving ? 'Saving Itinerary...' : '✓ Accept & Save Itinerary'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleDiscard}
-                    disabled={saving}
-                    className="btn btn-secondary"
-                  >
-                    ✕ Discard
+                    {generating ? (
+                      <>
+                        <span className="tp-spinner-sm" />
+                        <span>Generating itinerary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 size={18} />
+                        <span>Generate Itinerary</span>
+                      </>
+                    )}
                   </button>
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
 
-        <div className="auth-footer" style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary btn-sm">
-            ← Back to Trip Details
-          </Link>
+              {/* Preview Section */}
+              {itinerary && (
+                <div>
+                  <div className="tp-preview-notice-banner">
+                    <span className="tp-preview-notice-icon">✓</span>
+                    <span>Itinerary preview generated — review your schedule before saving as a version.</span>
+                  </div>
+
+                  {saving && saveProgress && (
+                    <div className="alert alert-success" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                      {saveProgress}
+                    </div>
+                  )}
+
+                  <div className="tp-generate-preview-days">
+                    {itinerary.map((day) => (
+                      <div key={day.dayNumber} className="tp-generate-day-card">
+                        <div className="tp-generate-day-header">
+                          <span className="tp-generate-day-badge">Day {day.dayNumber}</span>
+                          <h3 className="tp-generate-day-title">{day.title}</h3>
+                        </div>
+
+                        <div className="tp-generate-activities-list">
+                          {day.activities?.map((act, index) => (
+                            <div key={index} className="tp-generate-activity-item">
+                              <div className="tp-generate-activity-top">
+                                <span className="tp-generate-activity-time">
+                                  <Clock size={14} />
+                                  <span>{formatTimeTo12Hour(act.time) || 'Schedule'}</span>
+                                </span>
+                                <span className="tp-generate-activity-duration">
+                                  {act.estimatedDurationMinutes} min
+                                </span>
+                              </div>
+                              <h4 className="tp-generate-activity-title">{act.title}</h4>
+                              {act.description && (
+                                <p className="tp-generate-activity-desc">{act.description}</p>
+                              )}
+                              <div className="tp-generate-activity-meta">
+                                {act.locationName && (
+                                  <span className="tp-generate-act-meta-item">
+                                    <MapPin size={13} className="tp-generate-pin" />
+                                    <span>{act.locationName}</span>
+                                  </span>
+                                )}
+                                <span className="tp-generate-act-meta-item">
+                                  <span>₹{act.estimatedCost}</span>
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Preview Actions */}
+                  <div className="tp-generate-preview-actions">
+                    <button
+                      type="button"
+                      onClick={handleAcceptAndSave}
+                      disabled={saving}
+                      className="tp-action-btn-primary"
+                      style={{ padding: '11px 24px', fontSize: '0.92rem' }}
+                    >
+                      {saving ? 'Saving Itinerary...' : 'Accept & Save Itinerary'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDiscard}
+                      disabled={saving}
+                      className="tp-action-btn-secondary"
+                      style={{ padding: '11px 20px', fontSize: '0.92rem' }}
+                    >
+                      Discard
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : null}
         </div>
-      </div>
-    </div>
   );
 }

@@ -12,10 +12,8 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return (
-      <div className="landing-container">
-        <div className="glass-card" style={{ textAlign: 'center', padding: '2rem' }}>
-          <p className="hero-subtitle">Checking authentication...</p>
-        </div>
+      <div className="tp-auth-loading-screen" aria-label="Loading authentication status">
+        <div className="tp-auth-loading-spinner" />
       </div>
     );
   }

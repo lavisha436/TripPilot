@@ -199,7 +199,14 @@ export const updateTrip = async (tripId, updateData) => {
   // Handle nested budget fields safely without allowing budget.spent modification
   if (updateData.budget) {
     if (updateData.budget.estimated !== undefined) {
-      filteredUpdates['budget.estimated'] = updateData.budget.estimated;
+      const newEstimated = Number(updateData.budget.estimated) || 0;
+      filteredUpdates['budget.estimated'] = newEstimated;
+      const reserved = existingTrip.budget?.reserved || {};
+      const reservedTotal =
+        (Number(reserved.intercityTransport) || 0) +
+        (Number(reserved.accommodation) || 0) +
+        (Number(reserved.buffer) || 0);
+      filteredUpdates['budget.itineraryBudget'] = Math.max(0, newEstimated - reservedTotal);
     }
     if (updateData.budget.currency !== undefined) {
       filteredUpdates['budget.currency'] = updateData.budget.currency;

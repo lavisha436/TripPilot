@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import { AuthContext } from '../context/AuthContext.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
@@ -192,52 +192,47 @@ export default function PackingList() {
   }
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
+    <div className="tp-workspace-subpage">
+      <div className="tp-subpage-container">
         
-        {/* Page Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+
+        <div className="tp-subpage-header">
           <div>
-            <div className="badge" style={{ marginBottom: '6px' }}>🎒 Luggage & Gear</div>
-            <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '4px' }}>
+            <h1 className="tp-subpage-title">
               Smart Packing List
             </h1>
             {trip && (
-              <p style={{ color: '#38bdf8', fontSize: '1rem', margin: 0, fontWeight: '600' }}>
-                📍 {trip.title} ({trip.destination})
+              <p className="tp-subpage-subtitle">
+                {trip.title} • {trip.destination}
               </p>
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="tp-subpage-actions">
             <NotificationBell />
             {canGeneratePackingList && (
               checklist.length > 0 ? (
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="tp-action-btn-primary"
                   disabled={generating}
-                  style={{ fontSize: '0.9rem', opacity: generating ? 0.6 : 1 }}
+                  style={{ opacity: generating ? 0.6 : 1 }}
                   onClick={() => setShowReplaceConfirm(true)}
                 >
-                  {generating ? '🤖 Generating...' : '🔄 Regenerate List'}
+                  {generating ? 'Regenerating...' : 'Regenerate List'}
                 </button>
               ) : (
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="tp-action-btn-primary"
                   disabled={generating}
-                  style={{ fontSize: '0.9rem', opacity: generating ? 0.6 : 1 }}
+                  style={{ opacity: generating ? 0.6 : 1 }}
                   onClick={handleGeneratePackingList}
                 >
-                  {generating ? '🤖 Generating...' : '🤖 Generate AI Packing List'}
+                  {generating ? 'Generating...' : 'Generate Packing List'}
                 </button>
               )
             )}
-
-            <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary" style={{ fontSize: '0.9rem' }}>
-              ← Back to Workspace
-            </Link>
           </div>
         </div>
 
@@ -250,8 +245,8 @@ export default function PackingList() {
 
         {/* Global Loading State */}
         {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '36px 20px' }}>
-            <p style={{ color: '#cbd5e1' }}>Loading trip details & packing checklist...</p>
+          <div className="tp-light-empty-card" style={{ padding: '36px 20px' }}>
+            <p style={{ color: '#64748b' }}>Loading trip details & packing checklist...</p>
           </div>
         )}
 
@@ -266,35 +261,21 @@ export default function PackingList() {
           <>
             {/* 1. PERSONAL PACKING PROGRESS SUMMARY CARD */}
             {checklist.length > 0 && (
-              <div
-                className="placeholder-box"
-                style={{
-                  textAlign: 'left',
-                  borderStyle: 'solid',
-                  borderColor: 'rgba(56, 189, 248, 0.25)',
-                  background: 'rgba(15, 23, 42, 0.75)',
-                  marginBottom: '24px',
-                  padding: '20px'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <h3 style={{ color: '#ffffff', fontSize: '1.1rem', margin: 0 }}>
-                    📊 Personal Packing Progress
+              <div className="tp-packing-summary-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ color: '#0f172a', fontFamily: 'var(--font-primary, Outfit)', fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
+                    Packing Checklist Progress
                   </h3>
-                  <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.95rem' }}>
+                  <span style={{ color: packedPercentage === 100 ? '#16a34a' : '#ea580c', fontWeight: '700', fontSize: '0.92rem' }}>
                     {packedCount} / {totalCount} items packed ({packedPercentage}%)
                   </span>
                 </div>
 
                 {/* Progress Bar */}
-                <div style={{ background: 'rgba(255, 255, 255, 0.1)', height: '10px', borderRadius: '5px', overflow: 'hidden' }}>
+                <div className="tp-packing-bar-wrap">
                   <div
-                    style={{
-                      width: `${packedPercentage}%`,
-                      background: packedPercentage === 100 ? '#22c55e' : '#38bdf8',
-                      height: '100%',
-                      transition: 'width 0.4s ease'
-                    }}
+                    className={`tp-packing-bar-fill ${packedPercentage === 100 ? 'done' : ''}`}
+                    style={{ width: `${packedPercentage}%` }}
                   />
                 </div>
               </div>
@@ -302,106 +283,83 @@ export default function PackingList() {
 
             {/* 2. EMPTY CHECKLIST STATE */}
             {checklist.length === 0 ? (
-              <div
-                className="placeholder-box"
-                style={{
-                  textAlign: 'center',
-                  padding: '40px 20px',
-                  borderStyle: 'solid'
-                }}
-              >
-                <h3 style={{ color: '#ffffff', fontSize: '1.25rem', marginBottom: '8px' }}>
+              <div className="tp-light-empty-card">
+                <h3 className="tp-light-empty-title">
                   No packing items created yet.
                 </h3>
                 {canGeneratePackingList ? (
                   <>
-                    <p style={{ color: '#cbd5e1', marginBottom: '24px', fontSize: '0.95rem' }}>
-                      Let TripPilot AI generate a personalized packing checklist tailored to your trip destination ({trip?.destination}) and activities.
+                    <p className="tp-light-empty-text">
+                      Let TripPilot generate a personalized packing checklist tailored to your trip destination ({trip?.destination}) and activities.
                     </p>
                     <button
                       type="button"
                       onClick={handleGeneratePackingList}
                       disabled={generating}
-                      className="btn btn-primary"
-                      style={{ fontSize: '1rem', padding: '10px 20px', opacity: generating ? 0.6 : 1 }}
+                      className="tp-action-btn-primary"
+                      style={{ opacity: generating ? 0.6 : 1 }}
                     >
-                      {generating ? '🤖 Generating Packing List...' : '🤖 Generate AI Packing List'}
+                      {generating ? 'Generating Packing List...' : 'Generate Packing List'}
                     </button>
                   </>
                 ) : (
-                  <p style={{ color: '#cbd5e1', fontSize: '0.95rem' }}>
+                  <p className="tp-light-empty-text">
                     The trip owner or editor has not generated a packing list for this trip yet.
                   </p>
                 )}
               </div>
             ) : (
               /* 3. CATEGORIZED CHECKLIST ITEMS */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {Object.keys(groupedChecklist).map((catName) => {
                   const items = groupedChecklist[catName];
                   const icon = CATEGORY_ICONS[catName] || '📦';
                   const catPacked = items.filter((i) => isItemPackedByUser(i)).length;
 
                   return (
-                    <div
-                      key={catName}
-                      className="placeholder-box"
-                      style={{
-                        textAlign: 'left',
-                        borderStyle: 'solid',
-                        padding: '18px 20px',
-                        marginBottom: 0
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px' }}>
-                        <h3 style={{ color: '#38bdf8', fontSize: '1.1rem', margin: 0 }}>
-                          {icon} {catName}
+                    <div key={catName} className="tp-packing-category-card">
+                      <div className="tp-packing-category-header">
+                        <h3 style={{ color: '#0f172a', fontFamily: 'var(--font-primary, Outfit)', fontSize: '1.05rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{icon}</span> <span>{catName}</span>
                         </h3>
-                        <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '600' }}>
+                        <span style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: '600' }}>
                           {catPacked} / {items.length} packed
                         </span>
                       </div>
 
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {items.map((item) => {
                           const packedByUser = isItemPackedByUser(item);
                           return (
                             <div
                               key={item._id || item.item}
-                              style={{
-                                background: packedByUser ? 'rgba(34, 197, 94, 0.08)' : 'rgba(15, 23, 42, 0.6)',
-                                padding: '12px 16px',
-                                borderRadius: '10px',
-                                border: packedByUser ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                transition: 'all 0.2s ease',
-                                opacity: packedByUser ? 0.65 : 1
-                              }}
+                              className={`tp-packing-item-row ${packedByUser ? 'packed' : ''}`}
                             >
-                              <input
-                                type="checkbox"
-                                checked={packedByUser}
-                                disabled={togglingId === item._id}
-                                onChange={() => handleToggleItem(item._id)}
-                                style={{
-                                  width: '18px',
-                                  height: '18px',
-                                  cursor: 'pointer',
-                                  accentColor: '#22c55e'
-                                }}
-                              />
-                              <span
-                                style={{
-                                  color: packedByUser ? '#94a3b8' : '#ffffff',
-                                  textDecoration: packedByUser ? 'line-through' : 'none',
-                                  fontWeight: packedByUser ? '500' : '600',
-                                  fontSize: '0.95rem'
-                                }}
-                              >
-                                {item.item}
-                              </span>
+                              <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', width: '100%' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={packedByUser}
+                                  disabled={togglingId === item._id}
+                                  onChange={() => handleToggleItem(item._id)}
+                                  style={{
+                                    width: '18px',
+                                    height: '18px',
+                                    cursor: 'pointer',
+                                    accentColor: '#ea580c'
+                                  }}
+                                />
+                                <span
+                                  style={{
+                                    color: packedByUser ? '#94a3b8' : '#0f172a',
+                                    textDecoration: packedByUser ? 'line-through' : 'none',
+                                    fontWeight: packedByUser ? '500' : '600',
+                                    fontSize: '0.92rem',
+                                    transition: 'color 0.2s ease'
+                                  }}
+                                >
+                                  {item.item}
+                                </span>
+                              </label>
                             </div>
                           );
                         })}
@@ -419,51 +377,38 @@ export default function PackingList() {
       {/* ⚠️ CONFIRM REGENERATE WARNING MODAL */}
       {/* ========================================================= */}
       {showReplaceConfirm && canGeneratePackingList && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '460px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            <h2 style={{ color: '#fca5a5', fontSize: '1.3rem', marginBottom: '12px' }}>
-              ⚠️ Replace Existing Checklist?
-            </h2>
-
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>
-              Generating a new packing checklist using TripPilot AI will replace your current saved checklist. Any packed statuses will be reset for all members.
-            </p>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card" style={{ maxWidth: '460px' }}>
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title" style={{ color: '#991b1b' }}>
+                Replace Existing Checklist?
+              </h2>
               <button
                 type="button"
                 onClick={() => setShowReplaceConfirm(false)}
-                className="btn btn-secondary"
+                className="tp-modal-close-btn"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ color: '#475569', fontSize: '0.92rem', marginBottom: '20px', lineHeight: '1.5' }}>
+              Generating a new packing checklist will replace your current saved checklist. Any packed statuses will be reset for all members.
+            </p>
+
+            <div className="tp-modal-actions">
+              <button
+                type="button"
+                onClick={() => setShowReplaceConfirm(false)}
+                className="tp-action-btn-secondary"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleGeneratePackingList}
-                className="btn btn-primary"
+                className="tp-action-btn-primary"
               >
                 Yes, Generate New List
               </button>

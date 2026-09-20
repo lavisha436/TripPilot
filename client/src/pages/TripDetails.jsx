@@ -4,6 +4,28 @@ import api from '../api/axios.js';
 import { formatDateToDisplay } from '../utils/dateUtils.js';
 import { AuthContext } from '../context/AuthContext.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
+import {
+  MapPin,
+  ArrowLeft,
+  Compass,
+  Calendar,
+  Wallet,
+  Luggage,
+  Image,
+  Sparkles,
+  Layers,
+  Users,
+  Tag,
+  CircleDollarSign,
+  SlidersHorizontal,
+  Car,
+  Hotel,
+  Heart,
+  UserPlus,
+  CloudSun,
+  AlertTriangle,
+  Wand2
+} from 'lucide-react';
 
 const TRANSPORTATION_MODE_MAP = {
   FLIGHT: 'Flight',
@@ -17,6 +39,16 @@ const ACCOMMODATION_TYPE_MAP = {
   THREE_STAR: '3-Star',
   FOUR_STAR: '4-Star',
   FIVE_STAR: '5-Star'
+};
+
+/**
+ * Presentation helper to format currency numbers cleanly (e.g. 100000 -> 1,00,000)
+ */
+const formatCurrencyDisplay = (val) => {
+  if (val === null || val === undefined || val === '') return '0';
+  if (typeof val === 'number') return val.toLocaleString('en-IN');
+  const num = Number(val);
+  return !isNaN(num) ? num.toLocaleString('en-IN') : val;
 };
 
 /**
@@ -221,7 +253,8 @@ export default function TripDetails() {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12;
     if (hours === 0) hours = 12;
-    return `${hours}:${minutes} ${ampm}`;
+    const paddedHours = String(hours).padStart(2, '0');
+    return `${paddedHours}:${minutes} ${ampm}`;
   };
 
   /**
@@ -342,325 +375,349 @@ export default function TripDetails() {
   };
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
-
-        {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center' }}>
-            <p>Loading trip details...</p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="alert alert-error">{error}</div>
-        )}
-
-        {!loading && trip && (
-          <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
-              <div>
-                <div className="badge" style={{ marginBottom: '6px' }}>✈️ Workspace Overview</div>
-                <h1 className="page-title" style={{ fontSize: '2.2rem', margin: 0 }}>
-                  {trip.title}
-                </h1>
-              </div>
-              <NotificationBell />
+    <>
+      <div className="tp-workspace-content-inner">
+          {loading ? (
+            <div className="tp-workspace-loading-box">
+              <p>Loading trip details...</p>
             </div>
+          ) : error ? (
+            <div className="alert alert-error">{error}</div>
+          ) : !trip ? (
+            <div className="alert alert-error">Trip not found.</div>
+          ) : (
+            <>
+              {/* Top Trip Overview Header */}
+              <header className="tp-trip-overview-header">
+                <div className="tp-trip-overview-header-left">
+                  <div className="tp-trip-overview-eyebrow">
+                    <span className="tp-trip-overview-line" />
+                    <span>TRIP OVERVIEW</span>
+                  </div>
 
-            <p style={{ color: '#38bdf8', fontSize: '1.1rem', marginBottom: '20px', fontWeight: '600' }}>
-              📍 Destination: {trip.destination}
-            </p>
+                  <h1 className="tp-trip-overview-title">{trip.title || trip.destination}</h1>
 
-            {trip.description && (
-              <p className="hero-subtitle" style={{ fontSize: '0.95rem', marginBottom: '24px', textAlign: 'left' }}>
-                {trip.description}
-              </p>
-            )}
+                  <div className="tp-trip-overview-location">
+                    <MapPin size={17} className="tp-trip-overview-pin" />
+                    <span>{trip.destination}</span>
+                  </div>
+                </div>
 
-            {/* Core Details Card */}
-            <div
-              className="placeholder-box"
-              style={{
-                marginBottom: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px'
-              }}
-            >
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                🛫 <strong>Starting Location:</strong> {trip.startingLocation}
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                📅 <strong>Dates:</strong> {formatDateToDisplay(trip.startDate)} -{' '}
-                {formatDateToDisplay(trip.endDate)}
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                👥 <strong>Travel Companion:</strong> {trip.travelCompanion} ({trip.travelerCount} traveler{trip.travelerCount > 1 ? 's' : ''})
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                🏷️ <strong>Status:</strong> <span style={{ color: '#38bdf8', fontWeight: '600' }}>{trip.status}</span>
-              </p>
-            </div>
+                <div className="tp-trip-overview-header-right">
+                  <div className="tp-workspace-bell-wrap">
+                    <NotificationBell tripId={tripId} />
+                  </div>
+                </div>
+              </header>
 
-            {/* Budget Overview Card */}
-            <div
-              className="placeholder-box"
-              style={{
-                marginBottom: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}
-            >
-              <h3 style={{ color: '#ffffff', fontSize: '1.1rem', marginBottom: '4px' }}>💰 Budget Summary</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                <strong>Tier:</strong> {trip.budgetType}
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                <strong>Estimated Budget:</strong> {trip.budget?.currency} {trip.budget?.estimated}
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                <strong>Spent:</strong> {trip.budget?.currency} {trip.budget?.spent}
-              </p>
-            </div>
+              {/* Existing Next Sections */}
+              <div className="tp-workspace-body-sections">
 
-            {/* Travel Preferences Card */}
-            <div
-              className="placeholder-box"
-              style={{
-                marginBottom: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px'
-              }}
-            >
-              <h3 style={{ color: '#ffffff', fontSize: '1.1rem', marginBottom: '4px' }}>🧳 Travel Preferences</h3>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                🚘 <strong>Transportation:</strong>{' '}
-                {TRANSPORTATION_MODE_MAP[trip.transportationMode] || 'Not specified'}
-              </p>
-              <p style={{ color: '#cbd5e1', fontSize: '0.9rem' }}>
-                🏨 <strong>Accommodation:</strong>{' '}
-                {ACCOMMODATION_TYPE_MAP[trip.accommodationType] || 'Not specified'}
-              </p>
-            </div>
-
-            {/* Interests Section */}
-            {trip.interests && trip.interests.length > 0 && (
-              <div style={{ marginBottom: '24px' }}>
-                <h3 style={{ color: '#ffffff', fontSize: '1.1rem', marginBottom: '10px' }}>🎯 Interests</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {trip.interests.map((interest, index) => (
-                    <span key={index} className="feature-pill">
-                      {interest}
-                    </span>
-                  ))}
+            {/* 🧭 Trip Metadata Information Strip */}
+            <div className="tp-trip-meta-strip">
+              <div className="tp-trip-meta-item">
+                <div className="tp-trip-meta-icon-box">
+                  <MapPin size={18} />
+                </div>
+                <div className="tp-trip-meta-content">
+                  <span className="tp-trip-meta-label">Starting Location</span>
+                  <span className="tp-trip-meta-value">{trip.startingLocation || 'Not specified'}</span>
                 </div>
               </div>
-            )}
 
-            {/* ========================================================= */}
-            {/* 👥 TRIP MEMBERS & COLLABORATION SECTION */}
-            {/* ========================================================= */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
-                <h3 style={{ color: '#ffffff', fontSize: '1.1rem', margin: 0 }}>👥 Trip Members</h3>
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowInviteModal(true);
-                      setInviteError('');
-                      setInviteSuccess('');
-                    }}
-                    className="btn btn-primary btn-sm"
-                    style={{ fontSize: '0.85rem' }}
-                  >
-                    ➕ Invite Collaborator
-                  </button>
+              <div className="tp-trip-meta-item">
+                <div className="tp-trip-meta-icon-box">
+                  <Calendar size={18} />
+                </div>
+                <div className="tp-trip-meta-content">
+                  <span className="tp-trip-meta-label">Travel Dates</span>
+                  <span className="tp-trip-meta-value">
+                    {formatDateToDisplay(trip.startDate)} – {formatDateToDisplay(trip.endDate)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="tp-trip-meta-item">
+                <div className="tp-trip-meta-icon-box">
+                  <Users size={18} />
+                </div>
+                <div className="tp-trip-meta-content">
+                  <span className="tp-trip-meta-label">Travel Companion</span>
+                  <span className="tp-trip-meta-value">
+                    {trip.travelCompanion} {trip.travelerCount ? `(${trip.travelerCount} traveler${trip.travelerCount > 1 ? 's' : ''})` : ''}
+                  </span>
+                </div>
+              </div>
+
+              <div className="tp-trip-meta-item">
+                <div className="tp-trip-meta-icon-box">
+                  <Tag size={18} />
+                </div>
+                <div className="tp-trip-meta-content">
+                  <span className="tp-trip-meta-label">Status</span>
+                  <span className="tp-trip-meta-status-pill">{trip.status}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 📊 Row 1: Budget Summary & Travel Preferences (Equal Size and Level) */}
+            <div className="tp-workspace-grid-2col">
+              {/* Left Column: Budget Summary */}
+              <div className="tp-budget-summary-card">
+                <div className="tp-budget-card-header">
+                  <div className="tp-budget-card-icon-box">
+                    <CircleDollarSign size={18} />
+                  </div>
+                  <h3 className="tp-budget-card-title">Budget Summary</h3>
+                </div>
+
+                <div className="tp-budget-card-rows">
+                  <div className="tp-budget-card-row">
+                    <span className="tp-budget-card-label">Tier</span>
+                    <span className="tp-budget-card-value">{trip.budgetType || 'Not specified'}</span>
+                  </div>
+                  <div className="tp-budget-card-row">
+                    <span className="tp-budget-card-label">Estimated Budget</span>
+                    <span className="tp-budget-card-value">
+                      {trip.budget?.currency || 'INR'} {formatCurrencyDisplay(trip.budget?.estimated)}
+                    </span>
+                  </div>
+                  <div className="tp-budget-card-row">
+                    <span className="tp-budget-card-label">Spent</span>
+                    <span className="tp-budget-card-value">
+                      {trip.budget?.currency || 'INR'} {formatCurrencyDisplay(trip.budget?.spent)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Travel Preferences */}
+              <div className="tp-prefs-summary-card">
+                <div className="tp-prefs-card-header">
+                  <div className="tp-prefs-card-icon-box">
+                    <SlidersHorizontal size={18} />
+                  </div>
+                  <h3 className="tp-prefs-card-title">Travel Preferences</h3>
+                </div>
+
+                <div className="tp-prefs-card-rows">
+                  <div className="tp-prefs-card-row">
+                    <div className="tp-prefs-card-label-group">
+                      <Car size={16} className="tp-prefs-row-icon" />
+                      <span className="tp-prefs-card-label">Transportation</span>
+                    </div>
+                    <span className="tp-prefs-card-value">
+                      {TRANSPORTATION_MODE_MAP[trip.transportationMode] || 'Not specified'}
+                    </span>
+                  </div>
+                  <div className="tp-prefs-card-row">
+                    <div className="tp-prefs-card-label-group">
+                      <Hotel size={16} className="tp-prefs-row-icon" />
+                      <span className="tp-prefs-card-label">Accommodation</span>
+                    </div>
+                    <span className="tp-prefs-card-value">
+                      {ACCOMMODATION_TYPE_MAP[trip.accommodationType] || 'Not specified'}
+                    </span>
+                  </div>
+                </div>
+                <p className="tp-prefs-note">These preferences help us personalize your recommendations.</p>
+              </div>
+            </div>
+
+            {/* 🎯 Row 2: Interests & Trip Members Grid */}
+            <div className="tp-workspace-grid-2col">
+              {/* Left Column: Interests */}
+              <div className="tp-interests-section">
+                <div className="tp-interests-header">
+                  <div className="tp-interests-icon-box">
+                    <Heart size={18} />
+                  </div>
+                  <h3 className="tp-interests-title">Interests</h3>
+                </div>
+                {trip.interests && trip.interests.length > 0 ? (
+                  <div className="tp-interests-tags-wrap">
+                    {trip.interests.map((interest, index) => (
+                      <span key={index} className="tp-interest-tag">
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="tp-members-empty">No interests specified.</p>
                 )}
               </div>
 
-              {memberActionError && (
-                <div className="alert alert-error" style={{ marginBottom: '12px' }}>
-                  {memberActionError}
+              {/* Right Column: Trip Members */}
+              <div id="trip-members" className="tp-members-section">
+                <div className="tp-members-header">
+                  <div className="tp-members-title-group">
+                    <div className="tp-members-icon-box">
+                      <Users size={18} />
+                    </div>
+                    <h3 className="tp-members-title">Trip Members</h3>
+                  </div>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowInviteModal(true);
+                        setInviteError('');
+                        setInviteSuccess('');
+                      }}
+                      className="tp-members-action-btn"
+                    >
+                      <UserPlus size={15} />
+                      <span>Invite Collaborator</span>
+                    </button>
+                  )}
                 </div>
-              )}
 
-              {memberActionSuccess && (
-                <div className="alert alert-success" style={{ marginBottom: '12px' }}>
-                  {memberActionSuccess}
-                </div>
-              )}
+                {memberActionError && (
+                  <div className="alert alert-error" style={{ marginBottom: '12px' }}>
+                    {memberActionError}
+                  </div>
+                )}
 
-              {members.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No members found.</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {members.map((member) => {
-                    const isCurrentMemberOwner = member.role === 'OWNER';
-                    return (
-                      <div
-                        key={member._id}
-                        style={{
-                          background: 'rgba(15, 23, 42, 0.6)',
-                          padding: '12px 16px',
-                          borderRadius: '12px',
-                          border: '1px solid rgba(255, 255, 255, 0.08)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: '10px'
-                        }}
-                      >
-                        <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                          <p style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.95rem', margin: 0 }}>
-                            {member.userId?.name || 'User'}
-                          </p>
-                          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '2px 0 0 0', wordBreak: 'break-word' }}>
-                            {member.userId?.email || 'N/A'}
-                          </p>
+                {memberActionSuccess && (
+                  <div className="alert alert-success" style={{ marginBottom: '12px' }}>
+                    {memberActionSuccess}
+                  </div>
+                )}
+
+                {members.length === 0 ? (
+                  <p className="tp-members-empty">No members found.</p>
+                ) : (
+                  <div className="tp-members-list">
+                    {members.map((member) => {
+                      const isCurrentMemberOwner = member.role === 'OWNER';
+                      const memberName = member.userId?.name || 'User';
+                      const memberInitial = (memberName.trim().charAt(0) || 'U').toUpperCase();
+
+                      return (
+                        <div key={member._id} className="tp-member-row">
+                          <div className="tp-member-info-group">
+                            <div className="tp-member-avatar">
+                              {memberInitial}
+                            </div>
+                            <div className="tp-member-details">
+                              <p className="tp-member-name">{memberName}</p>
+                              <p className="tp-member-email">
+                                {member.userId?.email || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="tp-member-actions-group">
+                            {/* Owner role indicator OR Role Dropdown for Owner */}
+                            {isOwner && !isCurrentMemberOwner ? (
+                              <select
+                                value={member.role}
+                                disabled={roleUpdatingId === member._id}
+                                onChange={(e) => handleUpdateRole(member._id, e.target.value)}
+                                className="tp-member-role-select"
+                              >
+                                <option value="EDITOR">EDITOR</option>
+                                <option value="VIEWER">VIEWER</option>
+                              </select>
+                            ) : (
+                              <span className={`tp-member-role-badge ${member.role === 'OWNER' ? 'owner' : 'neutral'}`}>
+                                {member.role}
+                              </span>
+                            )}
+
+                            {/* Remove Member Button (Owner only, for non-owner members) */}
+                            {isOwner && !isCurrentMemberOwner && (
+                              <button
+                                type="button"
+                                onClick={() => setMemberToRemove(member)}
+                                className="tp-member-remove-btn"
+                                title="Remove Member"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
                         </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                          {/* Owner role indicator OR Role Dropdown for Owner */}
-                          {isOwner && !isCurrentMemberOwner ? (
-                            <select
-                              value={member.role}
-                              disabled={roleUpdatingId === member._id}
-                              onChange={(e) => handleUpdateRole(member._id, e.target.value)}
-                              style={{
-                                background: '#1e293b',
-                                border: '1px solid rgba(56, 189, 248, 0.4)',
-                                color: '#38bdf8',
-                                fontSize: '0.8rem',
-                                fontWeight: '600',
-                                borderRadius: '8px',
-                                padding: '4px 8px',
-                                outline: 'none',
-                                cursor: 'pointer'
-                              }}
-                            >
-                              <option value="EDITOR">EDITOR</option>
-                              <option value="VIEWER">VIEWER</option>
-                            </select>
-                          ) : (
-                            <span className="badge" style={{ marginBottom: '0', fontSize: '0.75rem', padding: '4px 10px' }}>
-                              {member.role}
-                            </span>
-                          )}
-
-                          {/* Remove Member Button (Owner only, for non-owner members) */}
-                          {isOwner && !isCurrentMemberOwner && (
-                            <button
-                              type="button"
-                              onClick={() => setMemberToRemove(member)}
-                              className="btn btn-sm"
-                              style={{
-                                fontSize: '0.75rem',
-                                padding: '4px 10px',
-                                background: 'rgba(239, 68, 68, 0.2)',
-                                color: '#fca5a5',
-                                border: '1px solid rgba(239, 68, 68, 0.4)'
-                              }}
-                            >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* ========================================================= */}
             {/* 🌤️ WEATHER MODULE SECTION */}
             {/* ========================================================= */}
-            <div
-              className="placeholder-box"
-              style={{
-                textAlign: 'left',
-                borderStyle: 'solid',
-                borderColor: 'rgba(56, 189, 248, 0.3)',
-                background: 'rgba(15, 23, 42, 0.7)',
-                marginBottom: '24px',
-                padding: '24px'
-              }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-                <div>
-                  <h3 style={{ color: '#ffffff', fontSize: '1.2rem', margin: 0 }}>
-                    🌤️ Weather & Destination Forecast
-                  </h3>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '4px 0 0 0' }}>
-                    Check OpenWeather forecast and analyze conditions for {trip.destination}
-                  </p>
+            <div id="trip-weather" className="tp-weather-section">
+              <div className="tp-weather-header">
+                <div className="tp-weather-title-group">
+                  <div className="tp-weather-icon-box">
+                    <CloudSun size={20} />
+                  </div>
+                  <div className="tp-weather-title-text">
+                    <h3 className="tp-weather-title">
+                      Weather & Destination Forecast
+                    </h3>
+                    <p className="tp-weather-subtitle">
+                      Check forecast and analyze conditions for {trip.destination}
+                    </p>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div className="tp-weather-actions">
                   <button
                     type="button"
                     onClick={handleFetchForecast}
                     disabled={forecastLoading}
-                    className="btn btn-secondary btn-sm"
-                    style={{ fontSize: '0.85rem' }}
+                    className="tp-weather-btn-secondary"
                   >
-                    {forecastLoading ? 'Loading...' : showForecast ? '🙈 Hide Forecast' : '🌤️ View Forecast'}
+                    {forecastLoading ? 'Loading...' : showForecast ? 'Hide Forecast' : 'View Forecast'}
                   </button>
                   <button
                     type="button"
                     onClick={handleFetchAnalysis}
                     disabled={analysisLoading}
-                    className="btn btn-primary btn-sm"
-                    style={{ fontSize: '0.85rem' }}
+                    className="tp-weather-btn-primary"
                   >
-                    {analysisLoading ? 'Analyzing...' : showAnalysis ? '🙈 Hide Analysis' : '🔍 Analyze Trip Weather'}
+                    {analysisLoading ? 'Analyzing...' : showAnalysis ? 'Hide Analysis' : 'Analyze Trip Weather'}
                   </button>
                 </div>
               </div>
 
               {optimizeSuccessMessage && (
-                <div className="alert alert-success" style={{ marginBottom: '16px' }}>
+                <div className="tp-weather-alert tp-weather-alert-success">
                   ✓ {optimizeSuccessMessage}
                 </div>
               )}
 
               {/* 1. OpenWeather Forecast Display */}
-              {forecastError && <div className="alert alert-error" style={{ marginBottom: '16px' }}>{forecastError}</div>}
+              {forecastError && (
+                <div className="tp-weather-alert tp-weather-alert-error">
+                  {forecastError}
+                </div>
+              )}
 
               {showForecast && forecastData && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h4 style={{ color: '#38bdf8', fontSize: '1rem', marginBottom: '12px' }}>
+                <div className="tp-weather-forecast-block">
+                  <h4 className="tp-weather-section-subtitle">
                     Trip Weather Forecast — {forecastData.city?.name || trip.destination}
                   </h4>
 
                   {getGroupedForecastDays().length === 0 ? (
-                    <p style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>
-                      ℹ️ No forecast data available for the trip dates ({formatDateToDisplay(trip.startDate)} - {formatDateToDisplay(trip.endDate)}).
+                    <p className="tp-weather-empty-text">
+                      No forecast data available for the trip dates ({formatDateToDisplay(trip.startDate)} - {formatDateToDisplay(trip.endDate)}).
                     </p>
                   ) : (
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+                    <div className="tp-weather-forecast-grid">
                       {getGroupedForecastDays().map((day) => (
-                        <div
-                          key={day.date}
-                          style={{
-                            background: 'rgba(15, 23, 42, 0.8)',
-                            padding: '12px',
-                            borderRadius: '10px',
-                            border: '1px solid rgba(255, 255, 255, 0.1)',
-                            textAlign: 'center'
-                          }}
-                        >
-                          <p style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.85rem', marginBottom: '4px' }}>
+                        <div key={day.date} className="tp-weather-day-card">
+                          <p className="tp-weather-day-date">
                             {formatDateToDisplay(day.date)}
                           </p>
-                          <p style={{ color: '#ffffff', fontSize: '1.1rem', fontWeight: 'bold', margin: '4px 0' }}>
+                          <p className="tp-weather-day-temp">
                             {Math.round(day.minTemp)}°C - {Math.round(day.maxTemp)}°C
                           </p>
-                          <p style={{ color: '#cbd5e1', fontSize: '0.8rem', textTransform: 'capitalize' }}>
+                          <p className="tp-weather-day-cond">
                             {day.condition} ({formatWeatherText12Hour(day.description)})
                           </p>
                         </div>
@@ -671,53 +728,90 @@ export default function TripDetails() {
               )}
 
               {/* 2. AI Trip Weather Analysis Display */}
-              {analysisError && <div className="alert alert-error" style={{ marginBottom: '16px' }}>{analysisError}</div>}
+              {analysisError && (
+                <div className="tp-weather-alert tp-weather-alert-error">
+                  {analysisError}
+                </div>
+              )}
 
               {showAnalysis && analysisData && (() => {
+                const daysList = analysisData?.days || [];
+                const availableDaysCount = daysList.filter((d) => Boolean(d.isForecastAvailable)).length;
+                const totalDaysCount = daysList.length;
                 const hasSevereWeatherInAnalysis = Boolean(
                   analysisData?.hasSevereWeather ||
-                  analysisData?.days?.some((d) => d.hasSevereWeather)
+                  daysList.some((d) => d.hasSevereWeather)
                 );
+                const hasAnyForecastAvailable = Boolean(
+                  analysisData?.hasAvailableForecasts !== undefined
+                    ? analysisData.hasAvailableForecasts
+                    : availableDaysCount > 0
+                );
+                const areAllForecastsAvailable = totalDaysCount > 0 && availableDaysCount === totalDaysCount;
+
+                let overallBadgeClass = 'tp-weather-badge-fair';
+                let overallBadgeText = '☀️ Fair Weather Conditions';
+
+                if (!hasAnyForecastAvailable) {
+                  overallBadgeClass = 'tp-weather-badge-unavailable';
+                  overallBadgeText = 'Forecast Unavailable';
+                } else if (hasSevereWeatherInAnalysis) {
+                  overallBadgeClass = 'tp-weather-badge-severe';
+                  overallBadgeText = '⚠️ Severe Weather Detected';
+                } else if (!areAllForecastsAvailable) {
+                  overallBadgeClass = 'tp-weather-badge-partial';
+                  overallBadgeText = '⛅ Partial Forecast Available';
+                } else {
+                  overallBadgeClass = 'tp-weather-badge-fair';
+                  overallBadgeText = '☀️ Fair Weather Conditions';
+                }
+
+                const fallbackOverallSummary = !hasAnyForecastAvailable
+                  ? 'Weather forecast data is currently unavailable for these trip dates (forecasts are available up to 5 days in advance).'
+                  : hasSevereWeatherInAnalysis
+                  ? 'Severe weather conditions detected during the forecast period. Review day-by-day advisories and adjust scheduled activities accordingly.'
+                  : !areAllForecastsAvailable
+                  ? 'Fair weather conditions for upcoming dates with available forecast data. Remaining dates are outside the 5-day forecast window.'
+                  : 'Fair weather conditions expected across all trip dates with no severe weather alerts.';
+
+                const overallSummaryText = analysisData.overallSummary || fallbackOverallSummary;
 
                 return (
-                  <div
-                    style={{
-                      background: 'rgba(15, 23, 42, 0.6)',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(56, 189, 248, 0.2)'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <h4 style={{ color: '#38bdf8', fontSize: '1rem', margin: 0 }}>
-                        📋 Weather Advisory Summary
-                      </h4>
-                      <span
-                        style={{
-                          padding: '3px 10px',
-                          borderRadius: '50px',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold',
-                          background: hasSevereWeatherInAnalysis ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
-                          color: hasSevereWeatherInAnalysis ? '#fca5a5' : '#86efac',
-                          border: hasSevereWeatherInAnalysis ? '1px solid rgba(239, 68, 68, 0.4)' : '1px solid rgba(34, 197, 94, 0.4)'
-                        }}
-                      >
-                        {hasSevereWeatherInAnalysis ? '⚠️ Severe Weather Detected' : '☀️ Fair Weather Conditions'}
-                      </span>
+                  <div className="tp-weather-analysis-block">
+                    {/* 3. Weather Advisory Summary: distinct highlighted surface */}
+                    <div className={`tp-weather-advisory-card ${!hasAnyForecastAvailable ? 'unavailable' : hasSevereWeatherInAnalysis ? 'severe' : 'fair'}`}>
+                      <div className="tp-weather-advisory-header">
+                        <div className="tp-weather-advisory-title-wrap">
+                          <div className="tp-weather-advisory-icon-box">
+                            {!hasAnyForecastAvailable ? (
+                              <Calendar size={18} />
+                            ) : hasSevereWeatherInAnalysis ? (
+                              <AlertTriangle size={18} />
+                            ) : (
+                              <CloudSun size={18} />
+                            )}
+                          </div>
+                          <h4 className="tp-weather-advisory-title">
+                            Weather Advisory Summary
+                          </h4>
+                        </div>
+                        <span className={overallBadgeClass}>
+                          {overallBadgeText}
+                        </span>
+                      </div>
+
+                      <p className="tp-weather-advisory-text">
+                        {formatWeatherText12Hour(overallSummaryText)}
+                      </p>
                     </div>
 
-                    <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '12px', lineHeight: '1.4' }}>
-                      {formatWeatherText12Hour(analysisData.overallSummary)}
-                    </p>
-
-                    {/* Severe Weather Conditions List */}
+                    {/* Severe Weather Conditions List (if any) */}
                     {analysisData.severeConditions && analysisData.severeConditions.length > 0 && (
-                      <div style={{ marginBottom: '16px' }}>
-                        <h5 style={{ color: '#fca5a5', fontSize: '0.85rem', marginBottom: '6px' }}>
+                      <div className="tp-weather-severe-box">
+                        <h5 className="tp-weather-severe-heading">
                           ⚠️ Severe Conditions & Advisory Alerts:
                         </h5>
-                        <ul style={{ margin: 0, paddingLeft: '20px', color: '#cbd5e1', fontSize: '0.85rem' }}>
+                        <ul className="tp-weather-severe-list">
                           {analysisData.severeConditions.map((c, i) => (
                             <li key={i} style={{ marginBottom: '4px' }}>
                               <strong>{c.date}:</strong>{' '}
@@ -728,87 +822,116 @@ export default function TripDetails() {
                       </div>
                     )}
 
-                    {/* Day-by-Day Detailed Weather Analysis */}
+                    {/* 4. Day-by-Day Detailed Weather Analysis */}
                     {analysisData.days && analysisData.days.length > 0 && (
-                      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                        <h5 style={{ color: '#38bdf8', fontSize: '0.9rem', marginBottom: '12px', fontWeight: 'bold' }}>
-                          📅 Day-by-Day Weather Analysis
-                        </h5>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+                      <div className="tp-weather-days-analysis-wrap">
+                        <div className="tp-weather-days-header-row">
+                          <h4 className="tp-weather-days-section-title">
+                            Day-by-Day Weather Analysis
+                          </h4>
+                        </div>
+                        <div className="tp-weather-analysis-grid">
                           {analysisData.days.map((dayItem) => {
                             const forecastDay = forecastData ? getGroupedForecastDays().find((f) => f.date === dayItem.date) : null;
+                            const isDayForecastAvailable = Boolean(
+                              dayItem.isForecastAvailable !== undefined
+                                ? dayItem.isForecastAvailable
+                                : forecastDay !== null
+                            );
+
+                            let dayBadgeClass = 'tp-weather-badge-fair';
+                            let dayBadgeText = '☀️ Fair';
+                            let dayCardClass = 'tp-weather-analysis-day-card';
+
+                            if (!isDayForecastAvailable) {
+                              dayBadgeClass = 'tp-weather-badge-unavailable';
+                              dayBadgeText = 'Forecast Unavailable';
+                              dayCardClass = 'tp-weather-analysis-day-card unavailable';
+                            } else if (dayItem.hasSevereWeather) {
+                              dayBadgeClass = 'tp-weather-badge-severe';
+                              dayBadgeText = '⚠️ Severe Alert';
+                              dayCardClass = 'tp-weather-analysis-day-card severe';
+                            } else {
+                              dayBadgeClass = 'tp-weather-badge-fair';
+                              dayBadgeText = '☀️ Fair';
+                              dayCardClass = 'tp-weather-analysis-day-card';
+                            }
+
                             return (
                               <div
                                 key={dayItem.dayNumber}
-                                style={{
-                                  background: 'rgba(15, 23, 42, 0.8)',
-                                  padding: '12px 14px',
-                                  borderRadius: '10px',
-                                  border: dayItem.hasSevereWeather
-                                    ? '1px solid rgba(239, 68, 68, 0.4)'
-                                    : '1px solid rgba(255, 255, 255, 0.1)'
-                                }}
+                                className={dayCardClass}
                               >
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                                  <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.85rem' }}>
-                                    Day {dayItem.dayNumber} ({formatDateToDisplay(dayItem.date)})
-                                  </span>
-                                  <span
-                                    style={{
-                                      padding: '2px 8px',
-                                      borderRadius: '50px',
-                                      fontSize: '0.7rem',
-                                      fontWeight: 'bold',
-                                      background: dayItem.hasSevereWeather ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)',
-                                      color: dayItem.hasSevereWeather ? '#fca5a5' : '#86efac',
-                                      border: dayItem.hasSevereWeather ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid rgba(34, 197, 94, 0.3)'
-                                    }}
-                                  >
-                                    {dayItem.hasSevereWeather ? '⚠️ Severe Alert' : '☀️ Fair'}
+                                <div className="tp-weather-day-header">
+                                  <div className="tp-weather-day-meta">
+                                    <span className="tp-weather-day-num-badge">
+                                      Day {dayItem.dayNumber}
+                                    </span>
+                                    <span className="tp-weather-day-date-text">
+                                      {formatDateToDisplay(dayItem.date)}
+                                    </span>
+                                  </div>
+                                  <span className={dayBadgeClass}>
+                                    {dayBadgeText}
                                   </span>
                                 </div>
 
                                 {/* Temperatures from forecast if available */}
-                                {forecastDay && (
-                                  <p style={{ color: '#ffffff', fontSize: '1rem', fontWeight: 'bold', margin: '4px 0' }}>
+                                {isDayForecastAvailable && forecastDay && (
+                                  <p className="tp-weather-analysis-day-temp">
                                     {Math.round(forecastDay.minTemp)}°C - {Math.round(forecastDay.maxTemp)}°C
                                   </p>
                                 )}
 
-                                {/* Weather Conditions */}
-                                <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginTop: '4px' }}>
-                                  {dayItem.weatherConditions && dayItem.weatherConditions.length > 0 ? (
-                                    dayItem.weatherConditions.map((cond, idx) => (
-                                      <div key={idx} style={{ marginBottom: '2px' }}>
-                                        <strong style={{ color: '#f8fafc' }}>{cond.condition}:</strong>{' '}
-                                        {formatWeatherText12Hour(cond.summaryText || cond.description)}
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <div>
-                                      <strong style={{ color: '#f8fafc' }}>Condition:</strong>{' '}
-                                      {forecastDay ? `${forecastDay.condition} (${formatWeatherText12Hour(forecastDay.description)})` : (dayItem.statusMessage || 'Good weather')}
-                                    </div>
-                                  )}
+                                {/* Weather Condition - Simple muted information row */}
+                                <div className="tp-weather-condition-row">
+                                  <span className="tp-weather-condition-label">Condition</span>
+                                  <span className="tp-weather-condition-val">
+                                    {isDayForecastAvailable && dayItem.weatherConditions && dayItem.weatherConditions.length > 0 ? (
+                                      dayItem.weatherConditions.map((cond, idx) => (
+                                        <span key={idx}>
+                                          {idx > 0 && ', '}
+                                          <strong>{cond.condition}:</strong> {formatWeatherText12Hour(cond.summaryText || cond.description)}
+                                        </span>
+                                      ))
+                                    ) : (
+                                      !isDayForecastAvailable
+                                        ? (dayItem.statusMessage || 'Forecast unavailable for this date')
+                                        : forecastDay
+                                        ? `${forecastDay.condition} (${formatWeatherText12Hour(forecastDay.description)})`
+                                        : (dayItem.statusMessage || 'Good weather')
+                                    )}
+                                  </span>
                                 </div>
 
-                                {/* Activity & Weather Warnings */}
+                                {/* Activity & Weather Warnings - Travel Itinerary Timeline */}
                                 {dayItem.activities && dayItem.activities.length > 0 && (
-                                  <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px dashed rgba(255,255,255,0.1)' }}>
-                                    <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '600' }}>Activities ({dayItem.activities.length}):</span>
-                                    <ul style={{ margin: '4px 0 0 0', paddingLeft: '16px', color: '#cbd5e1', fontSize: '0.75rem' }}>
+                                  <div className="tp-weather-analysis-activities">
+                                    <div className="tp-weather-analysis-activities-label">
+                                      Activities ({dayItem.activities.length})
+                                    </div>
+                                    <div className="tp-weather-timeline">
                                       {dayItem.activities.map((act, actIdx) => (
-                                        <li key={actIdx} style={{ marginBottom: '2px' }}>
-                                          <span>{act.title || act.name || 'Scheduled Activity'}</span>
-                                          {act.time && <span style={{ color: '#94a3b8' }}> ({formatTimeTo12Hour(act.time)})</span>}
-                                          {act.weatherWarning && (
-                                            <div style={{ color: '#fca5a5', fontStyle: 'italic', marginTop: '1px' }}>
-                                              ⚠️ {formatWeatherText12Hour(act.weatherWarning)}
-                                            </div>
-                                          )}
-                                        </li>
+                                        <div key={actIdx} className="tp-weather-timeline-item">
+                                          <div className="tp-weather-timeline-node" />
+                                          <div className="tp-weather-timeline-content">
+                                            {act.time && (
+                                              <span className="tp-weather-act-time">
+                                                {formatTimeTo12Hour(act.time)}
+                                              </span>
+                                            )}
+                                            <span className="tp-weather-act-title">
+                                              {act.title || act.name || 'Scheduled Activity'}
+                                            </span>
+                                            {isDayForecastAvailable && act.weatherWarning && (
+                                              <div className="tp-weather-analysis-warning">
+                                                ⚠️ {formatWeatherText12Hour(act.weatherWarning)}
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
                                       ))}
-                                    </ul>
+                                    </div>
                                   </div>
                                 )}
                               </div>
@@ -820,17 +943,16 @@ export default function TripDetails() {
 
                     {/* Action trigger for Gemini Itinerary Re-optimization */}
                     {hasSevereWeatherInAnalysis && canGenerateItinerary && (
-                      <div style={{ marginTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '12px' }}>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginBottom: '10px' }}>
-                          Bad weather alert detected! Would you like TripPilot AI to re-optimize your active schedule to substitute outdoor activities with safe indoor options?
+                      <div className="tp-weather-reoptimize-block">
+                        <p className="tp-weather-reoptimize-text">
+                          Bad weather alert detected! Would you like TripPilot to re-optimize your active schedule to substitute outdoor activities with safe indoor options?
                         </p>
                         <button
                           type="button"
                           onClick={() => setShowOptimizeModal(true)}
-                          className="btn btn-primary btn-sm"
-                          style={{ fontSize: '0.85rem' }}
+                          className="tp-weather-btn-primary"
                         >
-                          🤖 Re-Optimize Itinerary for Weather
+                          Re-Optimize Itinerary for Weather
                         </button>
                       </div>
                     )}
@@ -843,20 +965,11 @@ export default function TripDetails() {
             {deleteError && <div className="alert alert-error" style={{ marginBottom: '16px' }}>{deleteError}</div>}
 
             {showConfirmDelete ? (
-              <div
-                className="placeholder-box"
-                style={{
-                  borderStyle: 'solid',
-                  borderColor: 'rgba(239, 68, 68, 0.4)',
-                  background: 'rgba(239, 68, 68, 0.1)',
-                  textAlign: 'left',
-                  marginTop: '20px'
-                }}
-              >
-                <h3 style={{ color: '#fca5a5', fontSize: '1.1rem', marginBottom: '8px' }}>
-                  ⚠️ Delete Trip Workspace?
+              <div className="tp-delete-confirm-box">
+                <h3 className="tp-delete-confirm-title">
+                  Delete Trip Workspace?
                 </h3>
-                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '16px' }}>
+                <p className="tp-delete-confirm-text">
                   Are you sure you want to permanently delete <strong>"{trip.title}"</strong>? This will cascade-delete all itineraries, weather alerts, and financial records. This action cannot be undone.
                 </p>
                 <div style={{ display: 'flex', gap: '12px' }}>
@@ -864,111 +977,60 @@ export default function TripDetails() {
                     type="button"
                     onClick={handleDelete}
                     disabled={deleteLoading}
-                    className="btn"
-                    style={{ background: '#ef4444', color: '#ffffff', opacity: deleteLoading ? 0.6 : 1 }}
+                    className="tp-action-btn-danger"
+                    style={{ opacity: deleteLoading ? 0.6 : 1 }}
                   >
                     {deleteLoading ? 'Deleting...' : 'Yes, Delete Trip'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowConfirmDelete(false)}
-                    className="btn btn-secondary"
+                    className="tp-action-btn-secondary"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="nav-actions" style={{ marginTop: '24px', justifyContent: 'flex-start', flexWrap: 'wrap' }}>
-                <Link to={`/dashboard/trip/${tripId}/itinerary`} className="btn btn-primary">
-                  🗺️ Active Itinerary
-                </Link>
-                <Link to={`/dashboard/trip/${tripId}/expenses`} className="btn btn-secondary">
-                  💰 Budget & Expenses
-                </Link>
-                <Link to={`/dashboard/trip/${tripId}/packing-list`} className="btn btn-secondary">
-                  🎒 Packing List
-                </Link>
-                <Link to={`/dashboard/trip/${tripId}/gallery`} className="btn btn-secondary">
-                  📸 Photo Gallery
-                </Link>
-                <Link to={`/dashboard/trip/${tripId}/summary`} className="btn btn-secondary">
-                  ✨ AI Travel Summary
-                </Link>
-                <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-secondary">
-                  📋 Itinerary Versions
-                </Link>
-                {canGenerateItinerary && (
-                  <Link to={`/dashboard/trip/${tripId}/generate-itinerary`} className="btn btn-secondary">
-                    🤖 Generate Itinerary
-                  </Link>
-                )}
-                {canEditTrip && (
-                  <Link to={`/dashboard/trip/${tripId}/edit`} className="btn btn-secondary">
-                    ✏️ Edit Trip
-                  </Link>
-                )}
-                {isOwner && (
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmDelete(true)}
-                    className="btn"
-                    style={{
-                      background: 'rgba(239, 68, 68, 0.2)',
-                      color: '#fca5a5',
-                      border: '1px solid rgba(239, 68, 68, 0.4)'
-                    }}
-                  >
-                    🗑️ Delete Trip
-                  </button>
-                )}
-                <Link to="/dashboard" className="btn btn-secondary">
-                  ← Back to Dashboard
-                </Link>
-              </div>
+              (canEditTrip || isOwner) && (
+                <div className="tp-workspace-quick-actions">
+                  {canEditTrip && (
+                    <Link to={`/dashboard/trip/${tripId}/edit`} className="tp-action-btn-edit">
+                      Edit Trip
+                    </Link>
+                  )}
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmDelete(true)}
+                      className="tp-action-btn-delete"
+                    >
+                      Delete Trip
+                    </button>
+                  )}
+                </div>
+              )
             )}
-          </>
-        )}
-      </div>
+              </div>
+            </>
+          )}
+        </div>
 
       {/* ========================================================= */}
-      {/* ➕ INVITE COLLABORATOR GLASSMORPHIC MODAL */}
+      {/* ➕ INVITE COLLABORATOR MODAL */}
       {/* ========================================================= */}
       {showInviteModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '480px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.6)'
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h2 style={{ color: '#ffffff', fontSize: '1.3rem', margin: 0 }}>
-                ➕ Invite Collaborator
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card">
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title">
+                Invite Collaborator
               </h2>
               <button
                 type="button"
                 onClick={() => setShowInviteModal(false)}
-                className="btn btn-secondary btn-sm"
-                style={{ fontSize: '0.8rem' }}
+                className="tp-modal-close-btn"
+                aria-label="Close"
               >
                 ✕
               </button>
@@ -987,76 +1049,57 @@ export default function TripDetails() {
             )}
 
             <form onSubmit={handleSendInvite} className="auth-form">
-              <div className="form-group">
-                <label htmlFor="inviteEmail">User Email *</label>
+              <div className="tp-modal-form-group">
+                <label htmlFor="inviteEmail" className="tp-modal-label">User Email *</label>
                 <input
                   id="inviteEmail"
                   type="email"
-                  placeholder="colleague@example.com"
                   value={inviteForm.userEmail}
                   onChange={(e) => setInviteForm({ ...inviteForm, userEmail: e.target.value })}
+                  className="tp-modal-input"
                   required
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="inviteRole">Permission Role *</label>
+              <div className="tp-modal-form-group">
+                <label htmlFor="inviteRole" className="tp-modal-label">Permission Role *</label>
                 <select
                   id="inviteRole"
                   value={inviteForm.role}
                   onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: '#1e293b',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '12px',
-                    color: '#f8fafc',
-                    fontSize: '0.95rem',
-                    outline: 'none'
-                  }}
+                  className="tp-modal-select"
                 >
                   <option value="VIEWER">VIEWER (Read-only access)</option>
                   <option value="EDITOR">EDITOR (Can edit itinerary & expenses)</option>
                 </select>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="inviteMessage">Personal Note (Optional)</label>
+              <div className="tp-modal-form-group">
+                <label htmlFor="inviteMessage" className="tp-modal-label">Personal Note (Optional)</label>
                 <textarea
                   id="inviteMessage"
-                  placeholder="Add a friendly invitation message..."
                   value={inviteForm.inviteMessage}
                   onChange={(e) => setInviteForm({ ...inviteForm, inviteMessage: e.target.value })}
-                  style={{
-                    width: '100%',
-                    padding: '12px 16px',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '12px',
-                    color: '#f8fafc',
-                    fontSize: '0.95rem',
-                    outline: 'none',
-                    minHeight: '70px'
-                  }}
+                  className="tp-modal-textarea"
+                  style={{ minHeight: '70px' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <div className="tp-modal-actions">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="btn btn-secondary"
+                  className="tp-action-btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={inviteLoading}
-                  className="btn btn-primary"
+                  className="tp-action-btn-primary"
                   style={{ opacity: inviteLoading ? 0.6 : 1 }}
                 >
-                  {inviteLoading ? 'Sending Invite...' : '📩 Send Invitation'}
+                  {inviteLoading ? 'Sending Invite...' : 'Send Invitation'}
                 </button>
               </div>
             </form>
@@ -1068,44 +1111,31 @@ export default function TripDetails() {
       {/* ⚠️ REMOVE MEMBER CONFIRMATION MODAL */}
       {/* ========================================================= */}
       {memberToRemove && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '440px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.6)'
-            }}
-          >
-            <h2 style={{ color: '#fca5a5', fontSize: '1.3rem', marginBottom: '12px' }}>
-              ⚠️ Remove Member from Workspace?
-            </h2>
-
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>
-              Are you sure you want to remove <strong>{memberToRemove.userId?.name || 'this member'}</strong> ({memberToRemove.userId?.email}) from this trip workspace? They will lose access to all itineraries, weather alerts, and financial records.
-            </p>
-
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card" style={{ maxWidth: '460px' }}>
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title" style={{ color: '#991b1b' }}>
+                Remove Member from Workspace?
+              </h2>
               <button
                 type="button"
                 onClick={() => setMemberToRemove(null)}
-                className="btn btn-secondary"
+                className="tp-modal-close-btn"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p style={{ color: '#475569', fontSize: '0.92rem', marginBottom: '20px', lineHeight: '1.5' }}>
+              Are you sure you want to remove <strong>{memberToRemove.userId?.name || 'this member'}</strong> ({memberToRemove.userId?.email}) from this trip workspace? They will lose access to all itineraries, weather alerts, and financial records.
+            </p>
+
+            <div className="tp-modal-actions">
+              <button
+                type="button"
+                onClick={() => setMemberToRemove(null)}
+                className="tp-action-btn-secondary"
                 disabled={removeLoading}
               >
                 Cancel
@@ -1114,12 +1144,8 @@ export default function TripDetails() {
                 type="button"
                 onClick={handleRemoveMember}
                 disabled={removeLoading}
-                className="btn"
-                style={{
-                  background: '#ef4444',
-                  color: '#ffffff',
-                  opacity: removeLoading ? 0.6 : 1
-                }}
+                className="tp-action-btn-danger"
+                style={{ opacity: removeLoading ? 0.6 : 1 }}
               >
                 {removeLoading ? 'Removing...' : 'Remove Member'}
               </button>
@@ -1132,41 +1158,28 @@ export default function TripDetails() {
       {/* Weather Optimization Confirmation Modal */}
       {/* ========================================================= */}
       {showOptimizeModal && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '500px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            <h2 style={{ color: '#38bdf8', fontSize: '1.4rem', marginBottom: '12px' }}>
-              🤖 Re-Optimize Itinerary Schedule?
-            </h2>
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card" style={{ maxWidth: '500px' }}>
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title">
+                Re-Optimize Itinerary Schedule?
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowOptimizeModal(false)}
+                className="tp-modal-close-btn"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
 
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '16px', lineHeight: '1.5' }}>
-              TripPilot AI will analyze your active itinerary schedule against severe weather alert intervals and swap risky outdoor activities with safe indoor alternatives.
+            <p style={{ color: '#475569', fontSize: '0.92rem', marginBottom: '16px', lineHeight: '1.5' }}>
+              TripPilot will analyze your active itinerary schedule against severe weather alert intervals and swap risky outdoor activities with safe indoor alternatives.
             </p>
 
-            <div className="alert alert-info" style={{ marginBottom: '20px', fontSize: '0.85rem' }}>
-              💡 Your original itinerary structure will be updated, and activities optimized for weather will be marked with a weather badge.
+            <div className="alert alert-info" style={{ marginBottom: '20px', fontSize: '0.84rem' }}>
+              Your original itinerary structure will be updated, and activities optimized for weather will be marked with a weather badge.
             </div>
 
             {optimizeError && (
@@ -1175,11 +1188,11 @@ export default function TripDetails() {
               </div>
             )}
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <div className="tp-modal-actions">
               <button
                 type="button"
                 onClick={() => setShowOptimizeModal(false)}
-                className="btn btn-secondary"
+                className="tp-action-btn-secondary"
                 disabled={optimizeLoading}
               >
                 Cancel
@@ -1188,15 +1201,15 @@ export default function TripDetails() {
                 type="button"
                 onClick={handleOptimizeItinerary}
                 disabled={optimizeLoading}
-                className="btn btn-primary"
+                className="tp-action-btn-primary"
                 style={{ opacity: optimizeLoading ? 0.6 : 1 }}
               >
-                {optimizeLoading ? '🤖 Optimizing Schedule...' : '✨ Confirm Re-Optimization'}
+                {optimizeLoading ? 'Optimizing Schedule...' : 'Confirm Re-Optimization'}
               </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

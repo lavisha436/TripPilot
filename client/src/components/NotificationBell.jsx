@@ -2,10 +2,24 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import { socket } from '../socket.js';
+import {
+  Bell,
+  UserPlus,
+  Users,
+  Wallet,
+  CloudSun,
+  Sparkles,
+  Image as ImageIcon,
+  Clock,
+  CheckCheck,
+  Loader2,
+  AlertTriangle
+} from 'lucide-react';
 
 /**
  * 🔔 NotificationBell Component: Renders in-app notification bell icon with unread badge count
- * and a glassmorphic dropdown/drawer displaying real-time alerts.
+ * and a light dropdown/drawer displaying real-time alerts.
+ * Matches the TripPilot light visual system across all pages.
  * Automatically scopes notifications to currentTripId when inside a trip workspace.
  */
 export default function NotificationBell({ tripId: propTripId }) {
@@ -24,16 +38,26 @@ export default function NotificationBell({ tripId: propTripId }) {
 
   const drawerRef = useRef(null);
 
-  // Type Icons Configuration Map
-  const TYPE_ICONS = {
-    MEMBER_INVITE: '📩',
-    MEMBER_ACCEPTED: '👥',
-    BUDGET_WARNING: '💰',
-    WEATHER_ALERT: '🌦️',
-    AI_ITINERARY: '🤖',
-    GALLERY_UPLOAD: '📸',
-    ACTIVITY_REMINDER: '⏰',
-    SYSTEM: '🔔'
+  // Type Icons Configuration Renderer using clean Lucide icons
+  const renderTypeIcon = (type) => {
+    switch (type) {
+      case 'MEMBER_INVITE':
+        return <UserPlus size={15} />;
+      case 'MEMBER_ACCEPTED':
+        return <Users size={15} />;
+      case 'BUDGET_WARNING':
+        return <Wallet size={15} />;
+      case 'WEATHER_ALERT':
+        return <CloudSun size={15} />;
+      case 'AI_ITINERARY':
+        return <Sparkles size={15} />;
+      case 'GALLERY_UPLOAD':
+        return <ImageIcon size={15} />;
+      case 'ACTIVITY_REMINDER':
+        return <Clock size={15} />;
+      default:
+        return <Bell size={15} />;
+    }
   };
 
   // Helper for relative time formatting ("5 minutes ago", "2 hours ago", etc.)
@@ -197,98 +221,48 @@ export default function NotificationBell({ tripId: propTripId }) {
   };
 
   return (
-    <div ref={drawerRef} style={{ position: 'relative', display: 'inline-block' }}>
-      {/* 🔔 Interactive Notification Bell Button */}
+    <div ref={drawerRef} className="tp-notification-wrapper">
+      {/* 🔔 Interactive Notification Bell Trigger Button */}
       <button
         type="button"
         onClick={handleToggleDrawer}
         title="In-App Notifications"
-        style={{
-          position: 'relative',
-          background: isOpen ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-          border: isOpen ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '50px',
-          width: '42px',
-          height: '42px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '1.25rem',
-          color: '#ffffff',
-          cursor: 'pointer',
-          transition: 'all 0.2s ease',
-          outline: 'none'
-        }}
+        className={`tp-notification-bell-btn ${isOpen ? 'active' : ''}`}
+        aria-label="Notifications"
+        aria-expanded={isOpen}
       >
-        🔔
+        <Bell size={18} />
         {/* Unread Counter Badge (Only render if > 0) */}
         {unreadCount > 0 && (
-          <span
-            style={{
-              position: 'absolute',
-              top: '-4px',
-              right: '-4px',
-              background: '#ef4444',
-              color: '#ffffff',
-              fontSize: '0.75rem',
-              fontWeight: '700',
-              borderRadius: '50px',
-              minWidth: '18px',
-              height: '18px',
-              padding: '0 4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 2px 6px rgba(239, 68, 68, 0.6)',
-              border: '2px solid #0f172a'
-            }}
-          >
+          <span className="tp-notification-badge">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
       {/* ========================================================= */}
-      {/* 🔮 GLASSMORPHIC NOTIFICATION DROPDOWN / DRAWER */}
+      {/* 🔔 LIGHT NOTIFICATION DROPDOWN / PANEL */}
       {/* ========================================================= */}
       {isOpen && (
         <div
-          style={{
-            position: 'absolute',
-            top: '52px',
-            right: 0,
-            width: '360px',
-            maxWidth: '90vw',
-            maxHeight: '480px',
-            background: 'rgba(15, 23, 42, 0.92)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.15)',
-            borderRadius: '16px',
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.5)',
-            zIndex: 1100,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            textAlign: 'left'
-          }}
+          className="tp-notification-dropdown"
+          role="dialog"
+          aria-label="Notifications Panel"
         >
-          {/* Drawer Header */}
-          <div
-            style={{
-              padding: '14px 18px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-              display: 'flex',
-              justify: 'space-between',
-              alignItems: 'center',
-              background: 'rgba(255, 255, 255, 0.03)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1.1rem' }}>🔔</span>
-              <h3 style={{ color: '#ffffff', fontSize: '1rem', margin: 0, fontWeight: '700' }}>
+          {/* Dropdown Header */}
+          <div className="tp-notification-header">
+            <div className="tp-notification-header-left">
+              <span className="tp-notification-header-icon">
+                <Bell size={16} />
+              </span>
+              <h3 className="tp-notification-header-title">
                 Notifications
               </h3>
+              {unreadCount > 0 && (
+                <span className="tp-notification-unread-pill">
+                  {unreadCount} new
+                </span>
+              )}
             </div>
 
             {unreadCount > 0 && (
@@ -296,133 +270,90 @@ export default function NotificationBell({ tripId: propTripId }) {
                 type="button"
                 onClick={handleMarkAllAsRead}
                 disabled={markingAll}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#38bdf8',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  cursor: markingAll ? 'not-allowed' : 'pointer',
-                  opacity: markingAll ? 0.6 : 1,
-                  padding: 0
-                }}
+                className="tp-notification-mark-all-btn"
+                title="Mark all notifications as read"
               >
-                {markingAll ? 'Marking...' : 'Mark all as read'}
+                <CheckCheck size={14} />
+                <span>{markingAll ? 'Marking...' : 'Mark all as read'}</span>
               </button>
             )}
           </div>
 
-          {/* Drawer Body Content */}
-          <div style={{ padding: '12px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {/* Dropdown Body Content */}
+          <div className="tp-notification-body">
             {/* Loading State */}
             {loading && (
-              <div style={{ textAlign: 'center', padding: '24px 12px', color: '#cbd5e1', fontSize: '0.9rem' }}>
-                Loading notifications...
+              <div className="tp-notification-status-box">
+                <Loader2 size={22} className="animate-spin tp-notification-spinner" />
+                <span>Loading notifications...</span>
               </div>
             )}
 
             {/* Error State */}
             {!loading && error && (
-              <div className="alert alert-error" style={{ fontSize: '0.85rem', padding: '10px 12px' }}>
-                {error}
+              <div className="tp-notification-error-box">
+                <AlertTriangle size={15} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
               </div>
             )}
 
             {/* Empty State */}
             {!loading && !error && notifications.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '36px 16px', color: '#94a3b8' }}>
-                <div style={{ fontSize: '2.2rem', marginBottom: '8px' }}>🔔</div>
-                <h4 style={{ color: '#ffffff', fontSize: '1rem', marginBottom: '4px' }}>You're all caught up!</h4>
-                <p style={{ fontSize: '0.85rem', margin: 0 }}>No new notifications.</p>
+              <div className="tp-notification-empty-box">
+                <div className="tp-notification-empty-icon">
+                  <Bell size={20} />
+                </div>
+                <h4 className="tp-notification-empty-title">
+                  You're all caught up!
+                </h4>
+                <p className="tp-notification-empty-text">
+                  No new notifications right now.
+                </p>
               </div>
             )}
 
             {/* Notifications Cards List */}
             {!loading && !error && notifications.length > 0 && (
               notifications.map((notif) => {
-                const icon = TYPE_ICONS[notif.type] || TYPE_ICONS.SYSTEM;
                 const isUnread = !notif.isRead;
 
                 return (
                   <div
                     key={notif._id}
                     onClick={() => handleNotificationClick(notif)}
-                    style={{
-                      background: isUnread ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.5)',
-                      border: isUnread ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(255, 255, 255, 0.08)',
-                      borderRadius: '12px',
-                      padding: '12px 14px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px',
-                      position: 'relative'
+                    className={`tp-notification-item ${isUnread ? 'unread' : 'read'}`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleNotificationClick(notif);
+                      }
                     }}
                   >
                     {/* Icon Badge */}
-                    <div
-                      style={{
-                        fontSize: '1.25rem',
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}
-                    >
-                      {icon}
+                    <div className="tp-notification-item-icon">
+                      {renderTypeIcon(notif.type)}
                     </div>
 
                     {/* Text Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', marginBottom: '2px' }}>
-                        <h4
-                          style={{
-                            color: isUnread ? '#ffffff' : '#cbd5e1',
-                            fontSize: '0.9rem',
-                            fontWeight: isUnread ? '700' : '600',
-                            margin: 0,
-                            lineHeight: '1.3'
-                          }}
-                        >
+                    <div className="tp-notification-item-content">
+                      <div className="tp-notification-item-top">
+                        <h4 className="tp-notification-item-title">
                           {notif.title}
                         </h4>
-                        <span style={{ fontSize: '0.75rem', color: '#94a3b8', whitespace: 'nowrap', flexShrink: 0 }}>
+                        <span className="tp-notification-item-time">
                           {getTimeAgo(notif.createdAt)}
                         </span>
                       </div>
 
-                      <p
-                        style={{
-                          color: isUnread ? '#e2e8f0' : '#94a3b8',
-                          fontSize: '0.82rem',
-                          margin: 0,
-                          lineHeight: '1.4',
-                          wordBreak: 'break-word'
-                        }}
-                      >
+                      <p className="tp-notification-item-message">
                         {notif.message}
                       </p>
                     </div>
 
                     {/* Unread Indicator Dot */}
                     {isUnread && (
-                      <div
-                        style={{
-                          width: '8px',
-                          height: '8px',
-                          borderRadius: '50%',
-                          background: '#38bdf8',
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          boxShadow: '0 0 6px #38bdf8'
-                        }}
-                      />
+                      <div className="tp-notification-unread-dot" />
                     )}
                   </div>
                 );

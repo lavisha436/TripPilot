@@ -1,10 +1,23 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import api from '../api/axios.js';
 import { AuthContext } from '../context/AuthContext.jsx';
+import NotificationBell from '../components/NotificationBell.jsx';
+import {
+  MapPin,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  UploadCloud,
+  Trash2,
+  ExternalLink,
+  X,
+  User,
+  Loader2,
+  Play
+} from 'lucide-react';
 
 /**
- * 📸 Gallery Page Component: Displays shared trip media photos and videos in a responsive glassmorphic grid
+ * 📸 Gallery Page Component: Displays shared trip media photos and videos in a responsive grid
  * with integrated full-size Lightbox modal viewer, media upload form, and role-authorized deletion.
  */
 export default function Gallery() {
@@ -169,224 +182,285 @@ export default function Gallery() {
   };
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
-        <div className="badge" style={{ marginBottom: '12px' }}>📸 Collaborative Album</div>
-        <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '24px' }}>
-          📸 Trip Gallery
-        </h1>
+    <div className="tp-gallery-container">
+      {/* 🧭 Main Header matching Trip Workspace visual hierarchy */}
+      <header className="tp-expenses-header">
+        <div className="tp-expenses-header-left">
+          <div className="tp-trip-overview-eyebrow">
+            <span className="tp-trip-overview-line" />
+            <span>PHOTO GALLERY</span>
+          </div>
 
-        {/* ========================================================= */}
-        {/* 📤 MEDIA UPLOAD SECTION */}
-        {/* ========================================================= */}
-        <div
-          className="placeholder-box"
-          style={{
-            marginBottom: '28px',
-            background: 'rgba(15, 23, 42, 0.7)',
-            border: '1px solid rgba(56, 189, 248, 0.3)',
-            borderRadius: '14px',
-            padding: '20px'
-          }}
-        >
-          <h3 style={{ color: '#ffffff', fontSize: '1.1rem', margin: '0 0 12px 0' }}>
-            📤 Upload Media to Trip Gallery
-          </h3>
+          <h1 className="tp-trip-overview-title" style={{ fontSize: '2.4rem', marginBottom: '8px' }}>
+            Trip Gallery
+          </h1>
 
-          {uploadError && (
-            <div className="alert alert-error" style={{ marginBottom: '14px' }}>
-              {uploadError}
-            </div>
-          )}
-
-          {uploadSuccess && (
-            <div className="alert alert-success" style={{ marginBottom: '14px' }}>
-              ✓ {uploadSuccess}
-            </div>
-          )}
-
-          <form onSubmit={handleUploadSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ color: '#cbd5e1', fontSize: '0.85rem', fontWeight: '500' }}>
-                Select File (Images: JPEG, PNG, WEBP, GIF, HEIC | Videos: MP4, MOV, WEBM)
-              </label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,image/heic,video/mp4,video/quicktime,video/webm"
-                onChange={handleFileChange}
-                disabled={uploading}
-                style={{
-                  color: '#ffffff',
-                  background: 'rgba(30, 41, 59, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer'
-                }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ color: '#cbd5e1', fontSize: '0.85rem', fontWeight: '500' }}>
-                Caption (Optional)
-              </label>
-              <input
-                type="text"
-                value={caption}
-                onChange={(e) => setCaption(e.target.value)}
-                placeholder="Add a caption for this memory..."
-                disabled={uploading}
-                className="input-field"
-                style={{
-                  background: 'rgba(30, 41, 59, 0.8)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  color: '#ffffff',
-                  padding: '10px 14px',
-                  borderRadius: '8px',
-                  fontSize: '0.9rem'
-                }}
-              />
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                disabled={uploading || !file}
-                className="btn btn-primary"
-                style={{ fontSize: '0.9rem', padding: '10px 20px' }}
-              >
-                {uploading ? '⏳ Uploading Media...' : '📤 Upload Media'}
-              </button>
-            </div>
-          </form>
+          <div className="tp-trip-overview-location" style={{ marginBottom: 0 }}>
+            <MapPin size={16} className="tp-trip-overview-pin" />
+            <span>
+              {trip?.destination
+                ? `Shared memories and moments from ${trip.destination}`
+                : 'Shared photos and videos from your journey'}
+            </span>
+          </div>
         </div>
 
-        {/* ========================================================= */}
-        {/* 🖼️ GALLERY MEDIA GRID */}
-        {/* ========================================================= */}
-        {deleteError && (
-          <div className="alert alert-error" style={{ marginBottom: '16px' }}>
-            {deleteError}
+        <div className="tp-expenses-header-right">
+          <div className="tp-workspace-bell-wrap">
+            <NotificationBell tripId={tripId} />
           </div>
-        )}
+        </div>
+      </header>
 
-        {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center' }}>
-            <p style={{ color: '#cbd5e1' }}>Loading trip gallery...</p>
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="alert alert-error">{error}</div>
-        )}
-
-        {!loading && !error && gallery.length === 0 && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '30px' }}>
-            <p style={{ color: '#cbd5e1' }}>No media uploaded to this gallery yet.</p>
-          </div>
-        )}
-
-        {!loading && !error && gallery.length > 0 && (
+      {/* ========================================================= */}
+      {/* 📤 COMPACT MEDIA UPLOAD CARD */}
+      {/* ========================================================= */}
+      <div className="tp-gallery-upload-card">
+        <div className="tp-gallery-upload-header">
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
-              gap: '18px',
-              marginBottom: '28px'
+              width: '34px',
+              height: '34px',
+              borderRadius: '9px',
+              background: '#fff7ed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ea580c',
+              flexShrink: 0
             }}
           >
-            {gallery.map((item) => (
-              <div
-                key={item._id}
-                className="placeholder-box"
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  background: 'rgba(15, 23, 42, 0.7)',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderRadius: '12px',
-                  padding: '12px',
-                  overflow: 'hidden'
-                }}
-              >
-                {/* Media Thumbnail Container */}
-                <div
-                  onClick={() => handleMediaClick(item)}
-                  style={{
-                    position: 'relative',
-                    width: '100%',
-                    height: '180px',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    background: '#090d16',
-                    cursor: 'pointer'
-                  }}
-                >
-                  {item.mediaType === 'VIDEO' ? (
-                    <div
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'rgba(30, 41, 59, 0.8)',
-                        color: '#38bdf8'
-                      }}
-                    >
-                      <span style={{ fontSize: '2.5rem' }}>🎥</span>
-                      <span style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '4px' }}>
-                        Video File
-                      </span>
-                    </div>
-                  ) : (
-                    <img
-                      src={item.mediaUrl}
-                      alt={item.caption || 'Trip media photo'}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block'
-                      }}
-                    />
-                  )}
-                  <span
-                    className="badge"
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      fontSize: '0.7rem',
-                      padding: '3px 8px',
-                      background: 'rgba(15, 23, 42, 0.85)',
-                      backdropFilter: 'blur(4px)'
-                    }}
-                  >
-                    {item.mediaType === 'VIDEO' ? '🎥 VIDEO' : '🖼️ IMAGE'}
-                  </span>
-                </div>
+            <UploadCloud size={18} />
+          </div>
+          <div>
+            <h3 style={{ color: '#0f172a', fontSize: '0.98rem', fontWeight: '700', margin: 0 }}>
+              Upload Photos & Videos
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '0.78rem', margin: '2px 0 0 0' }}>
+              Share high-resolution travel memories with all members of this trip
+            </p>
+          </div>
+        </div>
 
-                {/* Media Metadata Container */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.85rem' }}>
-                      👤 {item.uploaderId?.name || item.uploaderId?.email || 'Unknown Member'}
+        {uploadError && (
+          <div
+            style={{
+              marginBottom: '12px',
+              padding: '9px 12px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '8px',
+              color: '#991b1b',
+              fontSize: '0.84rem'
+            }}
+          >
+            {uploadError}
+          </div>
+        )}
+
+        {uploadSuccess && (
+          <div
+            style={{
+              marginBottom: '12px',
+              padding: '9px 12px',
+              background: '#f0fdf4',
+              border: '1px solid #bbf7d0',
+              borderRadius: '8px',
+              color: '#166534',
+              fontSize: '0.84rem'
+            }}
+          >
+            ✓ {uploadSuccess}
+          </div>
+        )}
+
+        <form onSubmit={handleUploadSubmit}>
+          {/* Subtle Dash Dropzone */}
+          <div className={`tp-gallery-dropzone ${file ? 'has-file' : ''}`}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/heic,video/mp4,video/quicktime,video/webm"
+              onChange={handleFileChange}
+              disabled={uploading}
+              className="tp-gallery-file-input"
+              title="Click to choose a file"
+            />
+            <UploadCloud size={22} style={{ color: '#ea580c', marginBottom: '2px' }} />
+            <p style={{ margin: 0, fontWeight: '600', fontSize: '0.86rem', color: '#0f172a' }}>
+              {file ? file.name : 'Choose photos or videos'}
+            </p>
+            <p style={{ margin: 0, fontSize: '0.74rem', color: '#64748b' }}>
+              JPG, PNG, WEBP, GIF, HEIC, MP4, MOV, WEBM
+            </p>
+          </div>
+
+          {/* Caption input & Upload button in a clean compact horizontal layout */}
+          <div className="tp-gallery-upload-bottom">
+            <input
+              type="text"
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              disabled={uploading}
+              className="tp-form-input"
+              style={{ flex: 1, minWidth: '220px' }}
+            />
+            <button
+              type="submit"
+              disabled={uploading || !file}
+              className="tp-btn-primary"
+              style={{ opacity: uploading || !file ? 0.6 : 1, whiteSpace: 'nowrap' }}
+            >
+              {uploading ? (
+                <>
+                  <Loader2 size={15} className="animate-spin" />
+                  <span>Uploading...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud size={15} />
+                  <span>Upload Media</span>
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* ========================================================= */}
+      {/* 🖼️ GALLERY MEDIA GRID */}
+      {/* ========================================================= */}
+      {deleteError && (
+        <div
+          style={{
+            marginBottom: '16px',
+            padding: '10px 14px',
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+            color: '#991b1b',
+            fontSize: '0.85rem'
+          }}
+        >
+          {deleteError}
+        </div>
+      )}
+
+      {loading && (
+        <div className="tp-workspace-loading-box" style={{ marginBottom: '32px' }}>
+          <Loader2 size={26} className="animate-spin" style={{ color: '#ea580c', margin: '0 auto 10px auto' }} />
+          <p style={{ margin: 0, color: '#64748b' }}>Loading trip gallery memories...</p>
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="alert alert-error" style={{ marginBottom: '24px' }}>
+          {error}
+        </div>
+      )}
+
+      {!loading && !error && gallery.length === 0 && (
+        <div
+          style={{
+            background: '#ffffff',
+            border: '1px dashed rgba(15, 23, 42, 0.15)',
+            borderRadius: '16px',
+            padding: '48px 24px',
+            textAlign: 'center',
+            marginBottom: '32px'
+          }}
+        >
+          <div
+            style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '50%',
+              background: '#fff7ed',
+              color: '#ea580c',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 12px auto'
+            }}
+          >
+            <ImageIcon size={22} />
+          </div>
+          <h3 style={{ color: '#0f172a', fontSize: '1.05rem', fontWeight: '700', marginBottom: '4px' }}>
+            No media uploaded yet
+          </h3>
+          <p style={{ color: '#64748b', fontSize: '0.85rem', maxWidth: '380px', margin: '0 auto', lineHeight: '1.45' }}>
+            Be the first to share photos and travel moments from this journey.
+          </p>
+        </div>
+      )}
+
+      {!loading && !error && gallery.length > 0 && (
+        <div className="tp-gallery-grid">
+          {gallery.map((item) => (
+            <div key={item._id} className="tp-gallery-item-card">
+              {/* Media Thumbnail Container */}
+              <div
+                className="tp-gallery-thumb-wrap"
+                onClick={() => handleMediaClick(item)}
+                title="Click to view full size"
+              >
+                {item.mediaType === 'VIDEO' ? (
+                  <div className="tp-gallery-video-preview">
+                    <div className="tp-gallery-video-play-badge">
+                      <Play size={20} fill="#ea580c" style={{ marginLeft: '3px' }} />
+                    </div>
+                    <span style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '8px', fontWeight: '600' }}>
+                      Watch Video
                     </span>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  </div>
+                ) : (
+                  <img
+                    src={item.mediaUrl}
+                    alt={item.caption || 'Trip photo'}
+                    className="tp-gallery-thumb-img"
+                    loading="lazy"
+                  />
+                )}
+
+                <span className="tp-gallery-type-badge">
+                  {item.mediaType === 'VIDEO' ? (
+                    <>
+                      <VideoIcon size={11} style={{ color: '#ea580c' }} /> VIDEO
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon size={11} style={{ color: '#ea580c' }} /> PHOTO
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Media Metadata Container */}
+              <div className="tp-gallery-card-body">
+                <div>
+                  <div className="tp-gallery-card-top-row">
+                    <span className="tp-gallery-uploader" title={item.uploaderId?.name || item.uploaderId?.email}>
+                      <User size={13} style={{ color: '#94a3b8', flexShrink: 0 }} />
+                      <span>{item.uploaderId?.name || item.uploaderId?.email || 'Member'}</span>
+                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <a
                         href={item.mediaUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Open full size media link"
-                        style={{ color: '#38bdf8', fontSize: '0.8rem', textDecoration: 'none' }}
+                        title="Open original media link"
+                        style={{
+                          color: '#64748b',
+                          padding: '3px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          transition: 'color 0.2s'
+                        }}
                       >
-                        🔗 Link
+                        <ExternalLink size={13} />
                       </a>
+
                       {canDeleteMedia(item) && (
                         <button
                           type="button"
@@ -395,69 +469,37 @@ export default function Gallery() {
                             openDeleteModal(item);
                           }}
                           disabled={deletingId === item._id}
-                          className="btn btn-sm"
-                          style={{
-                            fontSize: '0.75rem',
-                            padding: '3px 8px',
-                            background: 'rgba(239, 68, 68, 0.2)',
-                            color: '#fca5a5',
-                            border: '1px solid rgba(239, 68, 68, 0.4)',
-                            borderRadius: '6px',
-                            cursor: deletingId === item._id ? 'not-allowed' : 'pointer'
-                          }}
+                          className="tp-btn-icon-danger"
+                          style={{ padding: '3px 7px', fontSize: '0.72rem' }}
                           title="Delete Media"
                         >
-                          {deletingId === item._id ? 'Deleting...' : '🗑️ Delete'}
+                          <Trash2 size={11} />
+                          <span>{deletingId === item._id ? '...' : 'Delete'}</span>
                         </button>
                       )}
                     </div>
                   </div>
 
                   {item.caption && (
-                    <p
-                      style={{
-                        color: '#cbd5e1',
-                        fontSize: '0.85rem',
-                        margin: '4px 0 0 0',
-                        lineHeight: '1.3'
-                      }}
-                    >
+                    <p className="tp-gallery-caption">
                       {item.caption}
                     </p>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        <div style={{ marginTop: '24px' }}>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary">
-            ← Back to Trip Workspace
-          </Link>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* ========================================================= */}
-      {/* 🖼️ FULL-SIZE IMAGE LIGHTBOX MODAL OVERLAY */}
+      {/* 🖼️ FULL-SIZE LIGHTBOX MODAL */}
       {/* ========================================================= */}
       {selectedMedia && (
         <div
+          className="tp-modal-backdrop"
           onClick={closeLightbox}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.88)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-            padding: '20px'
-          }}
+          style={{ background: 'rgba(15, 23, 42, 0.88)' }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
@@ -468,11 +510,11 @@ export default function Gallery() {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              background: 'rgba(15, 23, 42, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: '#ffffff',
+              border: '1px solid rgba(15, 23, 42, 0.1)',
               borderRadius: '16px',
-              padding: '24px',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.7)'
+              padding: '18px',
+              boxShadow: '0 24px 60px rgba(0, 0, 0, 0.4)'
             }}
           >
             <button
@@ -480,26 +522,24 @@ export default function Gallery() {
               onClick={closeLightbox}
               style={{
                 position: 'absolute',
-                top: '-14px',
-                right: '-14px',
+                top: '-12px',
+                right: '-12px',
                 zIndex: 100,
-                background: 'rgba(15, 23, 42, 0.95)',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                color: '#ffffff',
-                fontSize: '1.4rem',
-                fontWeight: 'bold',
-                width: '40px',
-                height: '40px',
+                background: '#ffffff',
+                border: '1px solid rgba(15, 23, 42, 0.12)',
+                color: '#0f172a',
+                width: '34px',
+                height: '34px',
                 borderRadius: '50%',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)'
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.15)'
               }}
-              title="Close Full Image View"
+              title="Close Full View"
             >
-              ✕
+              <X size={16} />
             </button>
 
             {selectedMedia.mediaType === 'VIDEO' ? (
@@ -511,7 +551,7 @@ export default function Gallery() {
                 style={{
                   maxWidth: '85vw',
                   maxHeight: '72vh',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   display: 'block',
                   outline: 'none'
                 }}
@@ -524,18 +564,19 @@ export default function Gallery() {
                   maxWidth: '85vw',
                   maxHeight: '72vh',
                   objectFit: 'contain',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   display: 'block'
                 }}
               />
             )}
 
-            <div style={{ marginTop: '14px', textAlign: 'center', width: '100%' }}>
-              <p style={{ color: '#ffffff', fontWeight: '600', fontSize: '0.95rem', margin: '0 0 4px 0' }}>
-                👤 {selectedMedia.uploaderId?.name || selectedMedia.uploaderId?.email || 'Unknown Member'}
+            <div style={{ marginTop: '12px', textAlign: 'center', width: '100%' }}>
+              <p style={{ color: '#0f172a', fontWeight: '700', fontSize: '0.92rem', margin: '0 0 2px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                <User size={13} style={{ color: '#ea580c' }} />
+                <span>{selectedMedia.uploaderId?.name || selectedMedia.uploaderId?.email || 'Member'}</span>
               </p>
               {selectedMedia.caption && (
-                <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0 }}>
+                <p style={{ color: '#64748b', fontSize: '0.84rem', margin: 0 }}>
                   {selectedMedia.caption}
                 </p>
               )}
@@ -548,61 +589,53 @@ export default function Gallery() {
       {/* 🗑️ DELETE CONFIRMATION MODAL OVERLAY */}
       {/* ========================================================= */}
       {mediaToDelete && (
-        <div
-          onClick={() => setMediaToDelete(null)}
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 2000,
-            padding: '20px'
-          }}
-        >
+        <div className="tp-modal-backdrop" onClick={() => setMediaToDelete(null)}>
           <div
+            className="tp-modal-card"
             onClick={(e) => e.stopPropagation()}
-            className="glass-card"
-            style={{
-              maxWidth: '440px',
-              width: '100%',
-              textAlign: 'center',
-              background: 'rgba(15, 23, 42, 0.95)',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              padding: '24px',
-              borderRadius: '16px',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
-            }}
+            style={{ maxWidth: '420px' }}
           >
-            <h3 style={{ color: '#ffffff', fontSize: '1.2rem', margin: '0 0 12px 0' }}>
-              🗑️ Delete Media
-            </h3>
+            <div className="tp-modal-header" style={{ marginBottom: '12px' }}>
+              <h2 className="tp-modal-title" style={{ color: '#dc2626', fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <Trash2 size={18} />
+                <span>Delete Media</span>
+              </h2>
+              <button
+                type="button"
+                className="tp-modal-close-btn"
+                onClick={() => setMediaToDelete(null)}
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+            </div>
 
             {deleteError && (
-              <div className="alert alert-error" style={{ marginBottom: '14px', fontSize: '0.85rem' }}>
+              <div
+                style={{
+                  marginBottom: '14px',
+                  padding: '9px 12px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#991b1b',
+                  fontSize: '0.84rem'
+                }}
+              >
                 {deleteError}
               </div>
             )}
 
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', margin: '0 0 8px 0' }}>
-              Are you sure you want to delete this media?
-            </p>
-            <p style={{ color: '#fca5a5', fontSize: '0.85rem', margin: '0 0 20px 0' }}>
-              This action cannot be undone.
+            <p style={{ color: '#475569', fontSize: '0.9rem', margin: '0 0 16px 0', lineHeight: '1.5' }}>
+              Are you sure you want to delete this {mediaToDelete.mediaType === 'VIDEO' ? 'video' : 'photo'}? This action cannot be undone.
             </p>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
               <button
                 type="button"
                 onClick={() => setMediaToDelete(null)}
                 disabled={deletingId === mediaToDelete._id}
-                className="btn btn-secondary"
-                style={{ minWidth: '100px' }}
+                className="tp-btn-modal-cancel"
               >
                 Cancel
               </button>
@@ -610,15 +643,10 @@ export default function Gallery() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deletingId === mediaToDelete._id}
-                className="btn"
-                style={{
-                  minWidth: '100px',
-                  background: 'rgba(239, 68, 68, 0.25)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239, 68, 68, 0.5)'
-                }}
+                className="tp-btn-delete-confirm"
+                style={{ opacity: deletingId === mediaToDelete._id ? 0.6 : 1 }}
               >
-                {deletingId === mediaToDelete._id ? 'Deleting...' : 'Delete'}
+                {deletingId === mediaToDelete._id ? 'Deleting...' : 'Yes, Delete'}
               </button>
             </div>
           </div>

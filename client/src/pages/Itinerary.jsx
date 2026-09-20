@@ -3,6 +3,7 @@ import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { AuthContext } from '../context/AuthContext.jsx';
 import NotificationBell from '../components/NotificationBell.jsx';
+import { Clock, MapPin, Plus, Check } from 'lucide-react';
 
 /**
  * 🗺️ Itinerary Page Component: Displays day-wise activities for the trip's active itinerary
@@ -101,7 +102,7 @@ export default function Itinerary() {
 
   useEffect(() => {
     if (location.state?.weatherOptimizedSuccess) {
-      setSuccessMessage('🤖 Itinerary schedule was successfully re-optimized for weather by TripPilot AI!');
+      setSuccessMessage('Itinerary schedule was successfully re-optimized for weather!');
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state]);
@@ -301,34 +302,37 @@ export default function Itinerary() {
   const sortedDayNumbers = Object.keys(groupedActivities).map(Number).sort((a, b) => a - b);
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">🗺️ Active Itinerary</div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
+    <div className="tp-workspace-subpage">
+      <div className="tp-subpage-container">
+        
+        <div className="tp-subpage-header">
           <div>
-            <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '4px' }}>
-              Trip Itinerary Management
+            <div className="tp-trip-overview-eyebrow">
+              <span className="tp-trip-overview-line" />
+              <span>ACTIVE ITINERARY</span>
+            </div>
+            <h1 className="tp-subpage-title">
+              Trip Itinerary
             </h1>
-            <p className="hero-subtitle" style={{ fontSize: '0.95rem', margin: 0 }}>
+            <p className="tp-subpage-subtitle">
               Add, edit, reorder, or track activities on your active itinerary
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="tp-subpage-actions">
             <NotificationBell />
             {canModifyActivities && (
               <button
                 type="button"
                 onClick={() => handleOpenAddModal(sortedDayNumbers.length > 0 ? sortedDayNumbers[0] : 1)}
-                className="btn btn-primary"
-                style={{ fontSize: '0.9rem' }}
+                className="tp-action-btn-primary"
               >
-                ➕ Add Activity
+                <Plus size={16} />
+                <span>Add Activity</span>
               </button>
             )}
-            <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-secondary" style={{ fontSize: '0.9rem' }}>
-              📋 Candidates
+            <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-action-btn-secondary">
+              Itinerary Versions
             </Link>
           </div>
         </div>
@@ -340,22 +344,22 @@ export default function Itinerary() {
         )}
 
         {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px' }}>
-            <p>Loading itinerary activities...</p>
+          <div className="tp-light-empty-card" style={{ padding: '36px 20px' }}>
+            <p style={{ color: '#64748b' }}>Loading itinerary activities...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="alert alert-error">{error}</div>
+          <div className="alert alert-error" style={{ marginBottom: '20px' }}>{error}</div>
         )}
 
         {!loading && !error && activities.length === 0 && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '40px 20px', borderStyle: 'solid' }}>
-            <h3 style={{ color: '#ffffff', fontSize: '1.2rem', marginBottom: '8px' }}>
+          <div className="tp-light-empty-card">
+            <h3 className="tp-light-empty-title">
               No activities planned yet.
             </h3>
-            <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '0.95rem' }}>
-              Add your custom activities or generate a full schedule using TripPilot AI.
+            <p className="tp-light-empty-text">
+              Add your custom activities or generate a full schedule using TripPilot.
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
               {canModifyActivities ? (
@@ -363,17 +367,18 @@ export default function Itinerary() {
                   <button
                     type="button"
                     onClick={() => handleOpenAddModal(1)}
-                    className="btn btn-primary"
+                    className="tp-action-btn-primary"
                   >
-                    ➕ Add First Activity
+                    <Plus size={16} />
+                    <span>Add First Activity</span>
                   </button>
-                  <Link to={`/dashboard/trip/${tripId}/generate-itinerary`} className="btn btn-secondary">
-                    🤖 Generate Itinerary
+                  <Link to={`/dashboard/trip/${tripId}/generate-itinerary`} className="tp-action-btn-secondary">
+                    Generate Itinerary
                   </Link>
                 </>
               ) : (
-                <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary">
-                  ← Back to Workspace
+                <Link to={`/dashboard/trip/${tripId}`} className="tp-action-btn-secondary">
+                  Back to Workspace
                 </Link>
               )}
             </div>
@@ -381,27 +386,24 @@ export default function Itinerary() {
         )}
 
         {!loading && !error && activities.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
             {sortedDayNumbers.map((dayNum) => {
               const dayActivities = groupedActivities[dayNum];
               const totalDayCount = dayActivities.length;
               const completedDayCount = dayActivities.filter((a) => a.isCompleted).length;
               const dayProgressPercent = totalDayCount > 0 ? Math.round((completedDayCount / totalDayCount) * 100) : 0;
+              const isDayComplete = totalDayCount > 0 && completedDayCount === totalDayCount;
 
               return (
-                <div
-                  key={dayNum}
-                  className="placeholder-box"
-                  style={{ marginBottom: '0', textAlign: 'left', borderStyle: 'solid' }}
-                >
+                <div key={dayNum} className="tp-itinerary-day-card">
                   {/* Day Header with Daily Activity Completion Progress */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="tp-itinerary-day-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                      <h3 style={{ color: '#38bdf8', fontSize: '1.2rem', margin: 0 }}>
+                      <h3 className="tp-itinerary-day-title">
                         Day {dayNum}
                       </h3>
-                      <span style={{ color: '#94a3b8', fontSize: '0.85rem', fontWeight: '600', background: 'rgba(255, 255, 255, 0.05)', padding: '2px 10px', borderRadius: '50px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                        {completedDayCount} / {totalDayCount} activities completed ({dayProgressPercent}%)
+                      <span className={`tp-itinerary-progress-pill ${isDayComplete ? 'completed' : ''}`}>
+                        {completedDayCount} / {totalDayCount} completed ({dayProgressPercent}%)
                       </span>
                     </div>
 
@@ -409,53 +411,49 @@ export default function Itinerary() {
                       <button
                         type="button"
                         onClick={() => handleOpenAddModal(dayNum)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                        className="tp-action-btn-secondary"
+                        style={{ fontSize: '0.8rem', padding: '5px 12px' }}
                       >
-                        ➕ Add to Day {dayNum}
+                        <Plus size={14} />
+                        <span>Add to Day {dayNum}</span>
                       </button>
                     )}
                   </div>
 
                   {/* Day Activities List */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {dayActivities.map((act, index) => (
                       <div
                         key={act._id}
-                        style={{
-                          background: act.isCompleted ? 'rgba(34, 197, 94, 0.08)' : 'rgba(15, 23, 42, 0.65)',
-                          padding: '14px 18px',
-                          borderRadius: '12px',
-                          border: act.isCompleted
-                            ? '1px solid rgba(34, 197, 94, 0.3)'
-                            : '1px solid rgba(255, 255, 255, 0.08)',
-                          transition: 'all 0.2s ease'
-                        }}
+                        className={`tp-activity-item ${act.isCompleted ? 'completed' : ''}`}
                       >
                         {/* Header Bar */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div className="tp-activity-header">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                            <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.85rem' }}>
-                              ⏰ {formatTimeTo12Hour(act.time) || 'Schedule'}
+                            <span className="tp-activity-time">
+                              <Clock size={14} />
+                              <span>{formatTimeTo12Hour(act.time) || 'Schedule'}</span>
                             </span>
 
-                            {/* Completion Status Control: Interactive for OWNER & EDITOR; Read-only for VIEWER */}
+                            {/* Completion Status Control */}
                             {canModifyActivities ? (
-                              <span
+                              <button
+                                type="button"
                                 style={{
                                   fontSize: '0.75rem',
                                   fontWeight: '600',
                                   padding: '3px 10px',
                                   borderRadius: '50px',
-                                  background: act.isCompleted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(148, 163, 184, 0.15)',
-                                  color: act.isCompleted ? '#86efac' : '#94a3b8',
+                                  background: act.isCompleted ? '#dcfce7' : '#f1f5f9',
+                                  color: act.isCompleted ? '#15803d' : '#64748b',
+                                  border: act.isCompleted ? '1px solid #bbf7d0' : '1px solid rgba(15, 23, 42, 0.08)',
                                   cursor: 'pointer'
                                 }}
                                 onClick={() => handleToggleComplete(act._id)}
                                 title="Click to toggle completion status"
                               >
                                 {act.isCompleted ? '✓ Completed' : '○ Pending'}
-                              </span>
+                              </button>
                             ) : (
                               <span
                                 style={{
@@ -463,9 +461,9 @@ export default function Itinerary() {
                                   fontWeight: '600',
                                   padding: '3px 10px',
                                   borderRadius: '50px',
-                                  background: act.isCompleted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(148, 163, 184, 0.15)',
-                                  color: act.isCompleted ? '#86efac' : '#94a3b8',
-                                  cursor: 'default'
+                                  background: act.isCompleted ? '#dcfce7' : '#f1f5f9',
+                                  color: act.isCompleted ? '#15803d' : '#64748b',
+                                  border: act.isCompleted ? '1px solid #bbf7d0' : '1px solid rgba(15, 23, 42, 0.08)'
                                 }}
                               >
                                 {act.isCompleted ? '✓ Completed' : '○ Pending'}
@@ -479,33 +477,33 @@ export default function Itinerary() {
                                   fontWeight: '600',
                                   padding: '3px 10px',
                                   borderRadius: '50px',
-                                  background: 'rgba(56, 189, 248, 0.2)',
-                                  color: '#38bdf8',
-                                  border: '1px solid rgba(56, 189, 248, 0.4)'
+                                  background: '#fff7ed',
+                                  color: '#ea580c',
+                                  border: '1px solid rgba(249, 115, 22, 0.25)'
                                 }}
                               >
-                                🤖 Optimized for Weather
+                                Optimized for Weather
                               </span>
                             )}
                           </div>
 
-                          {/* Action Controls: Edit, Delete, Reorder (OWNER & EDITOR only) */}
+                          {/* Action Controls: Edit, Delete, Reorder */}
                           {canModifyActivities && (
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <div className="tp-activity-actions">
                               <button
                                 type="button"
                                 onClick={() => handleMoveActivity(dayActivities, index, 'UP')}
                                 disabled={index === 0}
                                 title="Move Up"
                                 style={{
-                                  background: 'rgba(255, 255, 255, 0.1)',
-                                  color: '#ffffff',
-                                  border: 'none',
+                                  background: '#ffffff',
+                                  color: '#0f172a',
+                                  border: '1px solid rgba(15, 23, 42, 0.12)',
                                   borderRadius: '6px',
-                                  padding: '3px 8px',
-                                  fontSize: '0.8rem',
+                                  padding: '2px 8px',
+                                  fontSize: '0.78rem',
                                   cursor: index === 0 ? 'not-allowed' : 'pointer',
-                                  opacity: index === 0 ? 0.3 : 1
+                                  opacity: index === 0 ? 0.35 : 1
                                 }}
                               >
                                 ▲
@@ -516,14 +514,14 @@ export default function Itinerary() {
                                 disabled={index === dayActivities.length - 1}
                                 title="Move Down"
                                 style={{
-                                  background: 'rgba(255, 255, 255, 0.1)',
-                                  color: '#ffffff',
-                                  border: 'none',
+                                  background: '#ffffff',
+                                  color: '#0f172a',
+                                  border: '1px solid rgba(15, 23, 42, 0.12)',
                                   borderRadius: '6px',
-                                  padding: '3px 8px',
-                                  fontSize: '0.8rem',
+                                  padding: '2px 8px',
+                                  fontSize: '0.78rem',
                                   cursor: index === dayActivities.length - 1 ? 'not-allowed' : 'pointer',
-                                  opacity: index === dayActivities.length - 1 ? 0.3 : 1
+                                  opacity: index === dayActivities.length - 1 ? 0.35 : 1
                                 }}
                               >
                                 ▼
@@ -531,24 +529,18 @@ export default function Itinerary() {
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditModal(act)}
-                                className="btn btn-secondary btn-sm"
+                                className="tp-action-btn-secondary"
                                 style={{ fontSize: '0.75rem', padding: '3px 10px' }}
                               >
-                                ✏️ Edit
+                                Edit
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleInitiateDelete(act)}
-                                className="btn btn-sm"
-                                style={{
-                                  fontSize: '0.75rem',
-                                  padding: '3px 10px',
-                                  background: 'rgba(239, 68, 68, 0.2)',
-                                  color: '#fca5a5',
-                                  border: '1px solid rgba(239, 68, 68, 0.4)'
-                                }}
+                                className="tp-action-btn-danger"
+                                style={{ fontSize: '0.75rem', padding: '3px 10px' }}
                               >
-                                🗑️ Delete
+                                Delete
                               </button>
                             </div>
                           )}
@@ -556,28 +548,34 @@ export default function Itinerary() {
 
                         {/* Title & Description */}
                         <h4
+                          className="tp-activity-title"
                           style={{
-                            color: act.isCompleted ? '#cbd5e1' : '#ffffff',
                             textDecoration: act.isCompleted ? 'line-through' : 'none',
-                            fontSize: '1.1rem',
-                            marginBottom: '6px'
+                            color: act.isCompleted ? '#94a3b8' : '#0f172a'
                           }}
                         >
                           {act.title}
                         </h4>
 
                         {act.description && (
-                          <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '10px', lineHeight: '1.4' }}>
+                          <p className="tp-activity-desc">
                             {act.description}
                           </p>
                         )}
 
                         {/* Meta: Location, Cost, Duration */}
-                        <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' }}>
-                          {act.location?.name && <span>📍 {act.location.name}</span>}
-                          {act.estimatedCost !== undefined && <span>💰 ₹{act.estimatedCost}</span>}
+                        <div className="tp-activity-meta-row">
+                          {act.location?.name && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              <MapPin size={13} color="#ea580c" />
+                              <span>{act.location.name}</span>
+                            </span>
+                          )}
+                          {act.estimatedCost !== undefined && (
+                            <span>Estimated: ₹{act.estimatedCost}</span>
+                          )}
                           {act.estimatedDurationMinutes !== undefined && (
-                            <span>⏱️ {act.estimatedDurationMinutes} min</span>
+                            <span>{act.estimatedDurationMinutes} min</span>
                           )}
                         </div>
                       </div>
@@ -589,45 +587,27 @@ export default function Itinerary() {
           </div>
         )}
 
-        <div className="auth-footer" style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary btn-sm">
-            ← Back to Trip Details
-          </Link>
-        </div>
       </div>
 
       {/* ========================================================= */}
       {/* 📝 ADD / EDIT ACTIVITY MODAL */}
       {/* ========================================================= */}
       {isModalOpen && canModifyActivities && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '520px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            <h2 style={{ color: '#ffffff', fontSize: '1.4rem', marginBottom: '16px' }}>
-              {formMode === 'ADD' ? '➕ Add New Activity' : '✏️ Edit Activity'}
-            </h2>
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card">
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title">
+                {formMode === 'ADD' ? 'Add New Activity' : 'Edit Activity'}
+              </h2>
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                className="tp-modal-close-btn"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
 
             {formError && (
               <div className="alert alert-error" style={{ marginBottom: '16px' }}>
@@ -635,29 +615,25 @@ export default function Itinerary() {
               </div>
             )}
 
-            <form onSubmit={handleFormSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <form onSubmit={handleFormSubmit}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                    Day Number
-                  </label>
+                <div className="tp-modal-form-group">
+                  <label className="tp-modal-label">Day Number</label>
                   <input
                     type="number"
                     min="1"
-                    className="form-input"
+                    className="tp-modal-input"
                     value={formData.dayNumber}
                     onChange={(e) => setFormData({ ...formData, dayNumber: e.target.value })}
                     required
                   />
                 </div>
 
-                <div>
-                  <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                    Time (HH:MM 24hr)
-                  </label>
+                <div className="tp-modal-form-group">
+                  <label className="tp-modal-label">Time (HH:MM)</label>
                   <input
                     type="time"
-                    className="form-input"
+                    className="tp-modal-input"
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                     required
@@ -665,89 +641,76 @@ export default function Itinerary() {
                 </div>
               </div>
 
-              <div>
-                <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                  Activity Title
-                </label>
+              <div className="tp-modal-form-group">
+                <label className="tp-modal-label">Activity Title *</label>
                 <input
                   type="text"
-                  className="form-input"
-                  placeholder="e.g. Scuba Diving at Grand Island"
+                  className="tp-modal-input"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                 />
               </div>
 
-              <div>
-                <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                  Location / Venue Name
-                </label>
+              <div className="tp-modal-form-group">
+                <label className="tp-modal-label">Location / Venue Name</label>
                 <input
                   type="text"
-                  className="form-input"
-                  placeholder="e.g. Baga Beach Jetty"
+                  className="tp-modal-input"
                   value={formData.locationName}
                   onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                    Estimated Cost (₹)
-                  </label>
+                <div className="tp-modal-form-group">
+                  <label className="tp-modal-label">Estimated Cost (₹)</label>
                   <input
                     type="number"
                     min="0"
-                    className="form-input"
+                    className="tp-modal-input"
                     value={formData.estimatedCost}
                     onChange={(e) => setFormData({ ...formData, estimatedCost: e.target.value })}
                   />
                 </div>
 
-                <div>
-                  <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                    Duration (Minutes)
-                  </label>
+                <div className="tp-modal-form-group">
+                  <label className="tp-modal-label">Duration (Minutes)</label>
                   <input
                     type="number"
                     min="15"
                     step="15"
-                    className="form-input"
+                    className="tp-modal-input"
                     value={formData.estimatedDurationMinutes}
                     onChange={(e) => setFormData({ ...formData, estimatedDurationMinutes: e.target.value })}
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="form-label" style={{ color: '#cbd5e1', fontSize: '0.85rem' }}>
-                  Description / Notes
-                </label>
+              <div className="tp-modal-form-group">
+                <label className="tp-modal-label">Description / Notes</label>
                 <textarea
-                  className="form-input"
+                  className="tp-modal-textarea"
                   rows="3"
-                  placeholder="Additional details, tickets info, or notes..."
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <div className="tp-modal-actions">
                 <button
                   type="button"
                   onClick={handleCloseModal}
                   disabled={formSubmitting}
-                  className="btn btn-secondary"
+                  className="tp-action-btn-secondary"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="btn btn-primary"
+                  className="tp-action-btn-primary"
                   style={{ opacity: formSubmitting ? 0.6 : 1 }}
                 >
                   {formSubmitting ? 'Saving...' : formMode === 'ADD' ? 'Add Activity' : 'Save Changes'}
@@ -762,34 +725,21 @@ export default function Itinerary() {
       {/* ⚠️ DELETE CONFIRMATION MODAL */}
       {/* ========================================================= */}
       {deletingActivity && canModifyActivities && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '20px'
-          }}
-        >
-          <div
-            className="glass-card"
-            style={{
-              maxWidth: '460px',
-              width: '100%',
-              textAlign: 'left',
-              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
-            }}
-          >
-            <h2 style={{ color: '#fca5a5', fontSize: '1.3rem', marginBottom: '12px' }}>
-              ⚠️ Delete Activity?
-            </h2>
+        <div className="tp-modal-backdrop">
+          <div className="tp-modal-card" style={{ maxWidth: '460px' }}>
+            <div className="tp-modal-header">
+              <h2 className="tp-modal-title" style={{ color: '#991b1b' }}>
+                Delete Activity?
+              </h2>
+              <button
+                type="button"
+                onClick={handleCancelDelete}
+                className="tp-modal-close-btn"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
 
             {deleteError && (
               <div className="alert alert-error" style={{ marginBottom: '16px' }}>
@@ -797,16 +747,16 @@ export default function Itinerary() {
               </div>
             )}
 
-            <p style={{ color: '#cbd5e1', fontSize: '0.95rem', marginBottom: '20px', lineHeight: '1.5' }}>
+            <p style={{ color: '#475569', fontSize: '0.92rem', marginBottom: '20px', lineHeight: '1.5' }}>
               Are you sure you want to delete <strong>"{deletingActivity.title}"</strong> from Day {deletingActivity.dayNumber}? This action cannot be undone.
             </p>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+            <div className="tp-modal-actions">
               <button
                 type="button"
                 onClick={handleCancelDelete}
                 disabled={deletingLoading}
-                className="btn btn-secondary"
+                className="tp-action-btn-secondary"
               >
                 Cancel
               </button>
@@ -814,8 +764,8 @@ export default function Itinerary() {
                 type="button"
                 onClick={handleConfirmDelete}
                 disabled={deletingLoading}
-                className="btn"
-                style={{ background: '#ef4444', color: '#ffffff', opacity: deletingLoading ? 0.6 : 1 }}
+                className="tp-action-btn-danger"
+                style={{ opacity: deletingLoading ? 0.6 : 1 }}
               >
                 {deletingLoading ? 'Deleting...' : 'Yes, Delete'}
               </button>

@@ -1,6 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import NotificationBell from '../components/NotificationBell.jsx';
+import {
+  Compass,
+  MapPin,
+  Navigation,
+  Calendar,
+  Users,
+  Wallet,
+  Coins,
+  Plane,
+  Hotel,
+  FileText,
+  Sparkles,
+  Check,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  X
+} from 'lucide-react';
 
 const INTEREST_OPTIONS = [
   'Nature',
@@ -16,7 +35,8 @@ const INTEREST_OPTIONS = [
 ];
 
 /**
- * ✏️ EditTrip Component: Allows editing metadata of an existing trip workspace.
+ * ✏️ EditTrip Component: Polished light travel workspace page for editing an existing trip.
+ * Preserves all existing business logic, validation, API handling, and workspace routing.
  */
 export default function EditTrip() {
   const { tripId } = useParams();
@@ -44,6 +64,9 @@ export default function EditTrip() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const [showCustomInput, setShowCustomInput] = useState(false);
+  const [customInterestInput, setCustomInterestInput] = useState('');
+
   useEffect(() => {
     const fetchExistingTrip = async () => {
       try {
@@ -67,7 +90,8 @@ export default function EditTrip() {
             transportationMode: trip.transportationMode || '',
             accommodationType: trip.accommodationType || '',
             status: trip.status || 'PLANNED',
-            estimatedBudget: trip.budget?.estimated !== undefined ? trip.budget.estimated : '',
+            estimatedBudget:
+              trip.budget?.estimated !== undefined ? trip.budget.estimated : '',
             currency: trip.budget?.currency || 'INR',
             travelerCount: trip.travelerCount || 1,
             description: trip.description || '',
@@ -106,6 +130,25 @@ export default function EditTrip() {
         interests: updatedInterests
       };
     });
+  };
+
+  const handleAddCustomInterest = () => {
+    const trimmed = customInterestInput.trim();
+    if (!trimmed) return;
+
+    setFormData((prev) => {
+      const alreadyExists = prev.interests.some(
+        (item) => item.toLowerCase() === trimmed.toLowerCase()
+      );
+      if (alreadyExists) return prev;
+      return {
+        ...prev,
+        interests: [...prev.interests, trimmed]
+      };
+    });
+
+    setCustomInterestInput('');
+    setShowCustomInput(false);
   };
 
   const handleSubmit = async (e) => {
@@ -151,311 +194,521 @@ export default function EditTrip() {
     }
   };
 
-  const selectStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    background: '#1e293b',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    borderRadius: '12px',
-    color: '#f8fafc',
-    fontSize: '0.95rem',
-    outline: 'none'
-  };
-
-  const textareaStyle = {
-    width: '100%',
-    padding: '12px 16px',
-    background: 'rgba(15, 23, 42, 0.6)',
-    border: '1px solid rgba(255, 255, 255, 0.12)',
-    borderRadius: '12px',
-    color: '#f8fafc',
-    fontSize: '0.95rem',
-    outline: 'none',
-    resize: 'vertical',
-    minHeight: '80px'
-  };
-
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '640px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">✏️ Edit Workspace</div>
-        <h1 className="page-title" style={{ fontSize: '2.2rem' }}>Edit Trip</h1>
-        <p className="hero-subtitle" style={{ fontSize: '1rem', marginBottom: '24px' }}>
-          Update your trip details, budget, and preferences
-        </p>
-
-        {pageLoading && (
-          <div className="placeholder-box" style={{ textAlign: 'center' }}>
-            <p>Loading trip...</p>
+    <div className="tp-workspace-content-inner tp-edit-trip-container" style={{ maxWidth: '880px' }}>
+      {/* 📋 1. PAGE HEADER */}
+      <header className="tp-trip-overview-header" style={{ marginBottom: '24px' }}>
+        <div className="tp-trip-overview-header-left">
+          <div className="tp-trip-overview-eyebrow">
+            <span className="tp-trip-overview-line" />
+            <span>EDIT TRIP</span>
           </div>
-        )}
+          <h1 className="tp-subpage-title">Edit Your Trip</h1>
+          <p className="tp-subpage-subtitle">
+            Update your trip details and preferences.
+          </p>
+        </div>
 
-        {!pageLoading && error && (
-          <div className="alert alert-error">{error}</div>
-        )}
+        <div className="tp-trip-overview-header-right">
+          <div className="tp-workspace-bell-wrap">
+            <NotificationBell tripId={tripId} />
+          </div>
+        </div>
+      </header>
 
-        {!pageLoading && (
-          <form onSubmit={handleSubmit} className="auth-form">
-            {/* 1. Title */}
-            <div className="form-group">
-              <label htmlFor="title">Trip Title *</label>
-              <input
-                id="title"
-                name="title"
-                type="text"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-            </div>
+      {/* Loading Skeleton Box */}
+      {pageLoading && (
+        <div className="tp-workspace-loading-box">
+          <p>Loading trip details...</p>
+        </div>
+      )}
 
-            {/* 2. Destination & 3. Starting Location */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="destination">Destination *</label>
-                <input
-                  id="destination"
-                  name="destination"
-                  type="text"
-                  value={formData.destination}
-                  onChange={handleChange}
-                  required
-                />
+      {/* Global Error Banner */}
+      {!pageLoading && error && (
+        <div className="tp-create-trip-alert tp-create-trip-alert-error" role="alert">
+          <AlertCircle size={17} />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* 📝 2. EDIT FORM */}
+      {!pageLoading && (
+        <form onSubmit={handleSubmit} className="tp-create-trip-form">
+          {/* ========================================================= */}
+          {/* SECTION 1: Trip Details                                   */}
+          {/* ========================================================= */}
+          <section className="tp-create-trip-card">
+            <div className="tp-create-trip-card-header">
+              <div className="tp-create-trip-icon-box tp-icon-box-orange">
+                <Compass size={18} />
               </div>
-
-              <div className="form-group">
-                <label htmlFor="startingLocation">Starting Location *</label>
-                <input
-                  id="startingLocation"
-                  name="startingLocation"
-                  type="text"
-                  value={formData.startingLocation}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* 4. Start Date & 5. End Date */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="startDate">Start Date *</label>
-                <input
-                  id="startDate"
-                  name="startDate"
-                  type="date"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="endDate">End Date *</label>
-                <input
-                  id="endDate"
-                  name="endDate"
-                  type="date"
-                  value={formData.endDate}
-                  onChange={handleChange}
-                  required
-                />
+              <div>
+                <h2 className="tp-create-trip-card-title">Trip Details</h2>
+                <p className="tp-create-trip-card-desc">
+                  Update the basic details of your journey.
+                </p>
               </div>
             </div>
 
-            {/* 6. Travel Companion, 7. Budget Type & Status */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="travelCompanion">Companion *</label>
-                <select
-                  id="travelCompanion"
-                  name="travelCompanion"
-                  style={selectStyle}
-                  value={formData.travelCompanion}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="SOLO">Solo</option>
-                  <option value="FRIENDS">Friends</option>
-                  <option value="FAMILY">Family</option>
-                  <option value="COUPLE">Couple</option>
-                  <option value="BUSINESS">Business</option>
-                </select>
+            <div className="tp-create-trip-fields">
+              {/* Trip Title */}
+              <div className="tp-create-trip-field-group">
+                <label htmlFor="title" className="tp-create-trip-label">
+                  Trip Title <span className="tp-create-trip-required">*</span>
+                </label>
+                <div className="tp-create-trip-input-wrapper">
+                  <Compass size={16} className="tp-create-trip-input-icon" />
+                  <input
+                    id="title"
+                    name="title"
+                    type="text"
+                    className="tp-create-trip-input"
+                    value={formData.title}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="budgetType">Budget Type *</label>
-                <select
-                  id="budgetType"
-                  name="budgetType"
-                  style={selectStyle}
-                  value={formData.budgetType}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="BUDGET">Budget</option>
-                  <option value="MID_RANGE">Mid Range</option>
-                  <option value="LUXURY">Luxury</option>
-                </select>
+              {/* Destination & Starting Location */}
+              <div className="tp-create-trip-grid-2">
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="destination" className="tp-create-trip-label">
+                    Destination <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <MapPin size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="destination"
+                      name="destination"
+                      type="text"
+                      className="tp-create-trip-input"
+                      value={formData.destination}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="startingLocation" className="tp-create-trip-label">
+                    Starting Location <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Navigation size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="startingLocation"
+                      name="startingLocation"
+                      type="text"
+                      className="tp-create-trip-input"
+                      value={formData.startingLocation}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="status">Status *</label>
-                <select
-                  id="status"
-                  name="status"
-                  style={selectStyle}
-                  value={formData.status}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="PLANNED">Planned</option>
-                  <option value="ONGOING">Ongoing</option>
-                  <option value="COMPLETED">Completed</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
+              {/* Start Date, End Date, & Status */}
+              <div className="tp-create-trip-grid-3">
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="startDate" className="tp-create-trip-label">
+                    Start Date <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Calendar size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="startDate"
+                      name="startDate"
+                      type="date"
+                      className="tp-create-trip-input"
+                      value={formData.startDate}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="endDate" className="tp-create-trip-label">
+                    End Date <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Calendar size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="endDate"
+                      name="endDate"
+                      type="date"
+                      className="tp-create-trip-input"
+                      value={formData.endDate}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="status" className="tp-create-trip-label">
+                    Status <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <CheckCircle2 size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="status"
+                      name="status"
+                      className="tp-create-trip-select"
+                      value={formData.status}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="PLANNED">Planned</option>
+                      <option value="ONGOING">Ongoing</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="ARCHIVED">Archived</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================= */}
+          {/* SECTION 2: Travel & Stay                                  */}
+          {/* ========================================================= */}
+          <section className="tp-create-trip-card">
+            <div className="tp-create-trip-card-header">
+              <div className="tp-create-trip-icon-box tp-icon-box-orange">
+                <Plane size={18} />
+              </div>
+              <div>
+                <h2 className="tp-create-trip-card-title">Travel & Stay</h2>
+                <p className="tp-create-trip-card-desc">
+                  Update your travel preferences.
+                </p>
               </div>
             </div>
 
-            {/* Transportation & Accommodation Preferences */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="transportationMode">How will you travel to/from the destination? *</label>
-                <select
-                  id="transportationMode"
-                  name="transportationMode"
-                  style={selectStyle}
-                  value={formData.transportationMode}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Transportation</option>
-                  <option value="FLIGHT">Flight</option>
-                  <option value="TRAIN">Train</option>
-                  <option value="BUS">Bus</option>
-                  <option value="OWN_VEHICLE">Own Vehicle</option>
-                </select>
+            <div className="tp-create-trip-fields">
+              {/* Transportation & Accommodation */}
+              <div className="tp-create-trip-grid-2">
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="transportationMode" className="tp-create-trip-label">
+                    Transportation Mode <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Plane size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="transportationMode"
+                      name="transportationMode"
+                      className="tp-create-trip-select"
+                      value={formData.transportationMode}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Transportation</option>
+                      <option value="FLIGHT">Flight</option>
+                      <option value="TRAIN">Train</option>
+                      <option value="BUS">Bus</option>
+                      <option value="OWN_VEHICLE">Own Vehicle</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="accommodationType" className="tp-create-trip-label">
+                    Accommodation Preference <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Hotel size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="accommodationType"
+                      name="accommodationType"
+                      className="tp-create-trip-select"
+                      value={formData.accommodationType}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Accommodation</option>
+                      <option value="BUDGET">Budget</option>
+                      <option value="THREE_STAR">3-Star</option>
+                      <option value="FOUR_STAR">4-Star</option>
+                      <option value="FIVE_STAR">5-Star</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="accommodationType">What type of accommodation do you prefer? *</label>
-                <select
-                  id="accommodationType"
-                  name="accommodationType"
-                  style={selectStyle}
-                  value={formData.accommodationType}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Accommodation</option>
-                  <option value="BUDGET">Budget</option>
-                  <option value="THREE_STAR">3-Star</option>
-                  <option value="FOUR_STAR">4-Star</option>
-                  <option value="FIVE_STAR">5-Star</option>
-                </select>
+              {/* Companion & Travelers */}
+              <div className="tp-create-trip-grid-2">
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="travelCompanion" className="tp-create-trip-label">
+                    Travel Companion <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Users size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="travelCompanion"
+                      name="travelCompanion"
+                      className="tp-create-trip-select"
+                      value={formData.travelCompanion}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="SOLO">Solo</option>
+                      <option value="FRIENDS">Friends</option>
+                      <option value="FAMILY">Family</option>
+                      <option value="COUPLE">Couple</option>
+                      <option value="BUSINESS">Business</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="travelerCount" className="tp-create-trip-label">
+                    Number of Travelers <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Users size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="travelerCount"
+                      name="travelerCount"
+                      type="number"
+                      min="1"
+                      className="tp-create-trip-input"
+                      value={formData.travelerCount}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget Type, Currency & Estimated Budget */}
+              <div className="tp-create-trip-grid-3">
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="budgetType" className="tp-create-trip-label">
+                    Budget Type <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Wallet size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="budgetType"
+                      name="budgetType"
+                      className="tp-create-trip-select"
+                      value={formData.budgetType}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="BUDGET">Budget</option>
+                      <option value="MID_RANGE">Mid Range</option>
+                      <option value="LUXURY">Luxury</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="currency" className="tp-create-trip-label">
+                    Currency <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Coins size={16} className="tp-create-trip-input-icon" />
+                    <select
+                      id="currency"
+                      name="currency"
+                      className="tp-create-trip-select"
+                      value={formData.currency}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="INR">INR (₹)</option>
+                      <option value="USD">USD ($)</option>
+                      <option value="EUR">EUR (€)</option>
+                      <option value="GBP">GBP (£)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="tp-create-trip-field-group">
+                  <label htmlFor="estimatedBudget" className="tp-create-trip-label">
+                    Estimated Budget <span className="tp-create-trip-required">*</span>
+                  </label>
+                  <div className="tp-create-trip-input-wrapper">
+                    <Wallet size={16} className="tp-create-trip-input-icon" />
+                    <input
+                      id="estimatedBudget"
+                      name="estimatedBudget"
+                      type="number"
+                      min="0"
+                      className="tp-create-trip-input"
+                      value={formData.estimatedBudget}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================= */}
+          {/* SECTION 3: Trip Description                               */}
+          {/* ========================================================= */}
+          <section className="tp-create-trip-card">
+            <div className="tp-create-trip-card-header">
+              <div className="tp-create-trip-icon-box tp-icon-box-orange">
+                <FileText size={18} />
+              </div>
+              <div>
+                <h2 className="tp-create-trip-card-title">Trip Description</h2>
+                <p className="tp-create-trip-card-desc">
+                  Notes, highlights, or reminders for your journey.
+                </p>
               </div>
             </div>
 
-            {/* 8. Estimated Budget, 9. Currency, & 10. Traveler Count */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-              <div className="form-group">
-                <label htmlFor="estimatedBudget">Est. Budget *</label>
-                <input
-                  id="estimatedBudget"
-                  name="estimatedBudget"
-                  type="number"
-                  min="0"
-                  value={formData.estimatedBudget}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="currency">Currency *</label>
-                <select
-                  id="currency"
-                  name="currency"
-                  style={selectStyle}
-                  value={formData.currency}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="INR">INR (₹)</option>
-                  <option value="USD">USD ($)</option>
-                  <option value="EUR">EUR (€)</option>
-                  <option value="GBP">GBP (£)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="travelerCount">Travelers *</label>
-                <input
-                  id="travelerCount"
-                  name="travelerCount"
-                  type="number"
-                  min="1"
-                  value={formData.travelerCount}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            {/* 11. Description */}
-            <div className="form-group">
-              <label htmlFor="description">Description</label>
+            <div className="tp-create-trip-field-group">
               <textarea
                 id="description"
                 name="description"
-                style={textareaStyle}
+                className="tp-create-trip-textarea"
                 value={formData.description}
                 onChange={handleChange}
+                rows={4}
               />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                  {formData.description ? formData.description.length : 0} characters
+                </span>
+              </div>
+            </div>
+          </section>
+
+          {/* ========================================================= */}
+          {/* SECTION 4: Interests                                      */}
+          {/* ========================================================= */}
+          <section className="tp-create-trip-card">
+            <div className="tp-create-trip-card-header">
+              <div className="tp-create-trip-icon-box tp-icon-box-orange">
+                <Sparkles size={18} />
+              </div>
+              <div>
+                <h2 className="tp-create-trip-card-title">Interests</h2>
+                <p className="tp-create-trip-card-desc">
+                  Update activities and themes for this trip.
+                </p>
+              </div>
             </div>
 
-            {/* 12. Interests (Multi-select Chips) */}
-            <div className="form-group">
-              <label>Select Interests</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+            <div className="tp-create-trip-interests-container">
+              <div className="tp-create-trip-pills-row">
+                {/* Predefined Interest Options */}
                 {INTEREST_OPTIONS.map((interest) => {
-                  const isSelected = formData.interests.includes(interest);
+                  const selected = formData.interests.includes(interest);
                   return (
                     <button
                       key={interest}
                       type="button"
                       onClick={() => toggleInterest(interest)}
-                      className="feature-pill"
-                      style={{
-                        cursor: 'pointer',
-                        background: isSelected ? 'rgba(6, 182, 212, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-                        borderColor: isSelected ? '#38bdf8' : 'rgba(255, 255, 255, 0.08)',
-                        color: isSelected ? '#ffffff' : '#cbd5e1',
-                        fontWeight: isSelected ? '600' : '500'
-                      }}
+                      className={`tp-create-trip-pill ${selected ? 'active' : ''}`}
                     >
-                      {isSelected ? `✓ ${interest}` : `+ ${interest}`}
+                      {selected ? (
+                        <>
+                          <Check size={13} />
+                          <span>{interest}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={13} />
+                          <span>{interest}</span>
+                        </>
+                      )}
                     </button>
                   );
                 })}
-              </div>
-            </div>
 
+                {/* Selected Custom Interest Pills */}
+                {formData.interests
+                  .filter((item) => !INTEREST_OPTIONS.includes(item))
+                  .map((customInt) => (
+                    <button
+                      key={customInt}
+                      type="button"
+                      onClick={() => toggleInterest(customInt)}
+                      className="tp-create-trip-pill active"
+                    >
+                      <Check size={13} />
+                      <span>{customInt}</span>
+                    </button>
+                  ))}
+
+                {/* Custom Interest Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowCustomInput((prev) => !prev)}
+                  className="tp-create-trip-pill tp-create-trip-pill-custom"
+                >
+                  {showCustomInput ? (
+                    <>
+                      <X size={13} />
+                      <span>Close Custom</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus size={13} />
+                      <span>Custom Interest</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Custom Interest Input Row */}
+              {showCustomInput && (
+                <div className="tp-create-trip-custom-input-row" style={{ marginTop: '8px' }}>
+                  <input
+                    type="text"
+                    value={customInterestInput}
+                    onChange={(e) => setCustomInterestInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddCustomInterest();
+                      }
+                    }}
+                    className="tp-create-trip-input"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCustomInterest}
+                    className="tp-create-trip-btn-add-custom"
+                  >
+                    Add
+                  </button>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* ========================================================= */}
+          {/* SECTION 5: Action Buttons                                 */}
+          {/* ========================================================= */}
+          <div className="tp-create-trip-actions-row">
+            <Link
+              to={`/dashboard/trip/${tripId}`}
+              className="tp-create-trip-btn-cancel"
+            >
+              Cancel
+            </Link>
             <button
               type="submit"
-              className="btn btn-primary btn-block"
+              className="tp-create-trip-btn-submit"
               disabled={submitting}
-              style={{ marginTop: '16px' }}
             >
-              {submitting ? 'Updating Trip...' : 'Update Trip'}
+              <Check size={16} />
+              <span>{submitting ? 'Saving Changes...' : 'Save Changes'}</span>
             </button>
-          </form>
-        )}
-
-        <div className="auth-footer" style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary btn-sm">
-            ← Back to Trip Details
-          </Link>
-        </div>
-      </div>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

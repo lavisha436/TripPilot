@@ -2,6 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { formatDateToDisplay } from '../utils/dateUtils.js';
+import {
+  Layers,
+  Scale,
+  Sparkles,
+  Star,
+  Trash2,
+  Eye,
+  Calendar,
+  IndianRupee,
+  Loader2,
+  AlertTriangle
+} from 'lucide-react';
 
 /**
  * 📋 ItineraryCandidates Page Component: Lists all saved itinerary candidates for a trip
@@ -73,66 +85,141 @@ export default function ItineraryCandidates() {
   };
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '720px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">📋 Itinerary Candidates</div>
-        
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-          <div>
-            <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '4px' }}>
-              Itinerary Candidates
-            </h1>
-            <p className="hero-subtitle" style={{ fontSize: '0.95rem', margin: 0 }}>
-              Select two candidates to compare side-by-side
-            </p>
+    <div className="tp-workspace-subpage">
+      <div className="tp-subpage-container" style={{ maxWidth: '820px' }}>
+        {/* Subpage Header */}
+        <div className="tp-subpage-header">
+          <div className="tp-trip-overview-eyebrow">
+            <span className="tp-trip-overview-line" />
+            <span>ITINERARY VERSIONS</span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={handleCompare}
-              disabled={selectedIds.length !== 2}
-              className="btn btn-primary"
-              style={{
-                fontSize: '0.9rem',
-                opacity: selectedIds.length !== 2 ? 0.5 : 1,
-                cursor: selectedIds.length !== 2 ? 'not-allowed' : 'pointer'
-              }}
-            >
-              ⚖️ Compare Selected ({selectedIds.length}/2)
-            </button>
-            <Link to={`/dashboard/trip/${tripId}/generate-itinerary`} className="btn btn-secondary" style={{ fontSize: '0.9rem' }}>
-              🤖 Generate New
-            </Link>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginTop: '6px', width: '100%' }}>
+            <div>
+              <h1 className="tp-subpage-title" style={{ margin: '0 0 4px 0' }}>
+                Itinerary Versions
+              </h1>
+              <p className="tp-subpage-subtitle" style={{ margin: 0 }}>
+                Select two candidates to compare side-by-side or manage saved plans
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleCompare}
+                disabled={selectedIds.length !== 2}
+                className="tp-action-btn-primary"
+                style={{
+                  fontSize: '0.85rem',
+                  padding: '8px 18px',
+                  opacity: selectedIds.length !== 2 ? 0.5 : 1,
+                  cursor: selectedIds.length !== 2 ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Scale size={15} /> Compare Selected ({selectedIds.length}/2)
+              </button>
+              <Link
+                to={`/dashboard/trip/${tripId}/generate-itinerary`}
+                className="tp-action-btn-secondary"
+                style={{ fontSize: '0.85rem', padding: '8px 18px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Sparkles size={15} /> Generate New
+              </Link>
+            </div>
           </div>
         </div>
 
         {selectionError && (
-          <div className="alert alert-error" style={{ marginBottom: '16px' }}>
-            ⚠️ {selectionError}
+          <div
+            style={{
+              marginBottom: '16px',
+              padding: '12px 16px',
+              background: '#fffbeb',
+              border: '1px solid #fef3c7',
+              borderRadius: '10px',
+              color: '#92400e',
+              fontSize: '0.88rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            <AlertTriangle size={16} />
+            {selectionError}
           </div>
         )}
 
         {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px' }}>
-            <p>Loading itinerary candidates...</p>
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid rgba(15, 23, 42, 0.08)',
+              borderRadius: '16px',
+              padding: '48px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <Loader2 size={28} className="animate-spin" style={{ color: '#ea580c', margin: '0 auto 12px auto' }} />
+            <p style={{ color: '#64748b', fontSize: '0.92rem', margin: 0 }}>Loading itinerary candidates...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="alert alert-error">{error}</div>
+          <div
+            style={{
+              padding: '14px 18px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              color: '#991b1b',
+              fontSize: '0.9rem'
+            }}
+          >
+            {error}
+          </div>
         )}
 
         {!loading && !error && itineraries.length === 0 && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '40px 20px', borderStyle: 'solid' }}>
-            <h3 style={{ color: '#ffffff', fontSize: '1.2rem', marginBottom: '8px' }}>
-              No saved itineraries yet.
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px dashed rgba(15, 23, 42, 0.15)',
+              borderRadius: '16px',
+              padding: '48px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '50%',
+                background: 'rgba(234, 88, 12, 0.08)',
+                color: '#ea580c',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 14px auto'
+              }}
+            >
+              <Layers size={24} />
+            </div>
+            <h3 style={{ color: '#0f172a', fontSize: '1.1rem', fontWeight: '700', marginBottom: '6px' }}>
+              No saved itineraries yet
             </h3>
-            <p style={{ color: '#cbd5e1', marginBottom: '20px', fontSize: '0.95rem' }}>
-              Generate custom day-by-day travel plans using TripPilot AI.
+            <p style={{ color: '#64748b', marginBottom: '22px', fontSize: '0.9rem', maxWidth: '420px', margin: '0 auto 22px auto', lineHeight: '1.5' }}>
+              Generate custom day-by-day travel plans using TripPilot.
             </p>
-            <Link to={`/dashboard/trip/${tripId}/generate-itinerary`} className="btn btn-primary">
-              🤖 Generate your first itinerary
+            <Link
+              to={`/dashboard/trip/${tripId}/generate-itinerary`}
+              className="tp-action-btn-primary"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Sparkles size={16} /> Generate your first itinerary
             </Link>
           </div>
         )}
@@ -144,26 +231,22 @@ export default function ItineraryCandidates() {
               return (
                 <div
                   key={item._id}
-                  className="placeholder-box"
                   style={{
-                    marginBottom: '0',
-                    textAlign: 'left',
-                    borderStyle: 'solid',
-                    borderColor: isSelected
-                      ? '#38bdf8'
+                    background: '#ffffff',
+                    border: isSelected
+                      ? '2px solid #ea580c'
                       : item.isActive
-                      ? 'rgba(56, 189, 248, 0.4)'
-                      : 'rgba(255, 255, 255, 0.1)',
-                    background: isSelected
-                      ? 'rgba(56, 189, 248, 0.12)'
-                      : item.isActive
-                      ? 'rgba(56, 189, 248, 0.06)'
-                      : 'rgba(15, 23, 42, 0.6)',
-                    padding: '20px',
+                      ? '1.5px solid rgba(234, 88, 12, 0.35)'
+                      : '1px solid rgba(15, 23, 42, 0.08)',
+                    borderRadius: '16px',
+                    padding: '22px',
+                    boxShadow: isSelected
+                      ? '0 6px 20px rgba(234, 88, 12, 0.1)'
+                      : '0 2px 10px rgba(15, 23, 42, 0.03)',
                     transition: 'all 0.2s ease'
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px', flexWrap: 'wrap', gap: '10px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                       <input
                         type="checkbox"
@@ -171,53 +254,62 @@ export default function ItineraryCandidates() {
                         checked={isSelected}
                         onChange={() => handleToggleSelect(item._id)}
                         style={{
-                          width: '20px',
-                          height: '20px',
+                          width: '18px',
+                          height: '18px',
                           marginTop: '3px',
                           cursor: 'pointer',
-                          accentColor: '#38bdf8'
+                          accentColor: '#ea580c'
                         }}
                       />
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px', flexWrap: 'wrap' }}>
-                          <label htmlFor={`select-${item._id}`} style={{ color: '#ffffff', fontSize: '1.2rem', fontWeight: '700', cursor: 'pointer', margin: 0 }}>
+                          <label htmlFor={`select-${item._id}`} style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '700', cursor: 'pointer', margin: 0 }}>
                             {item.title}
                           </label>
                           {item.isActive && (
                             <span
                               style={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.72rem',
                                 fontWeight: '700',
                                 padding: '3px 10px',
                                 borderRadius: '50px',
-                                background: 'rgba(56, 189, 248, 0.25)',
-                                color: '#38bdf8',
-                                border: '1px solid rgba(56, 189, 248, 0.4)'
+                                background: 'rgba(234, 88, 12, 0.1)',
+                                color: '#ea580c',
+                                border: '1px solid rgba(234, 88, 12, 0.25)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                             >
-                              ⭐ Active Itinerary
+                              <Star size={11} /> Active Itinerary
                             </span>
                           )}
                         </div>
 
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                          {item.source === 'AI_GENERATED' ? '✨ AI Generated' : '✍️ Manual Plan'} • Created {formatDateToDisplay(item.createdAt)}
+                        <span style={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <Calendar size={13} style={{ color: '#94a3b8' }} />
+                          {item.source === 'AI_GENERATED' ? 'Smart Plan' : 'Manual Plan'} • Created {formatDateToDisplay(item.createdAt)}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '20px', fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '16px', paddingLeft: '32px', flexWrap: 'wrap' }}>
-                    <span>🎯 <strong>{item.activityCount}</strong> Activities</span>
-                    <span>💰 Estimated Cost: <strong>₹{item.totalEstimatedCost}</strong></span>
+                  <div style={{ display: 'flex', gap: '20px', fontSize: '0.88rem', color: '#475569', marginBottom: '16px', paddingLeft: '30px', flexWrap: 'wrap' }}>
+                    <span>
+                      Activities: <strong style={{ color: '#0f172a' }}>{item.activityCount}</strong>
+                    </span>
+                    <span>
+                      Estimated Cost: <strong style={{ color: '#0f172a' }}>₹{Number(item.totalEstimatedCost || 0).toLocaleString('en-IN')}</strong>
+                    </span>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '12px', paddingLeft: '32px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '10px', paddingLeft: '30px', flexWrap: 'wrap' }}>
                     <Link
                       to={`/dashboard/trip/${tripId}/itineraries/${item._id}`}
-                      className="btn btn-secondary btn-sm"
+                      className="tp-action-btn-secondary"
+                      style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
                     >
-                      👁️ View Itinerary
+                      <Eye size={13} /> View Itinerary
                     </Link>
 
                     {!item.isActive && (
@@ -225,15 +317,18 @@ export default function ItineraryCandidates() {
                         type="button"
                         onClick={() => handleDeleteCandidate(item._id)}
                         disabled={deleteLoadingId === item._id}
-                        className="btn btn-sm"
+                        className="tp-action-btn-danger"
                         style={{
-                          background: 'rgba(239, 68, 68, 0.2)',
-                          color: '#fca5a5',
-                          border: '1px solid rgba(239, 68, 68, 0.4)',
+                          fontSize: '0.82rem',
+                          padding: '6px 14px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '5px',
                           cursor: deleteLoadingId === item._id ? 'not-allowed' : 'pointer'
                         }}
                       >
-                        {deleteLoadingId === item._id ? 'Deleting...' : '🗑️ Delete'}
+                        <Trash2 size={13} />
+                        {deleteLoadingId === item._id ? 'Deleting...' : 'Delete'}
                       </button>
                     )}
                   </div>
@@ -243,11 +338,6 @@ export default function ItineraryCandidates() {
           </div>
         )}
 
-        <div className="auth-footer" style={{ textAlign: 'center', marginTop: '16px' }}>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary btn-sm">
-            ← Back to Trip Details
-          </Link>
-        </div>
       </div>
     </div>
   );

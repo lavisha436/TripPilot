@@ -1,13 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext.jsx';
 import api from '../api/axios.js';
 import { formatDateToDisplay } from '../utils/dateUtils.js';
 import NotificationBell from '../components/NotificationBell.jsx';
+import {
+  MapPin,
+  Calendar,
+  ArrowRight,
+  Compass,
+  Mail,
+  User,
+  MessageSquare,
+  Check,
+  X,
+  Plus,
+  Search,
+  Users,
+  Heart,
+  Briefcase
+} from 'lucide-react';
 
 /**
  * ✈️ Dashboard Page Component: Fetches and displays user's trips & pending invitations.
  */
 export default function Dashboard() {
+  const { user } = useContext(AuthContext);
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +37,43 @@ export default function Dashboard() {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [actionSuccessMessage, setActionSuccessMessage] = useState('');
   const [actionError, setActionError] = useState('');
+
+  // Calculate unique destination count safely
+  const uniqueDestinationsCount = new Set(
+    trips.map((t) => t.destination?.trim().toLowerCase()).filter(Boolean)
+  ).size;
+
+  // Calculate total calendar days traveled across COMPLETED trips only
+  const daysTraveledCount = trips.reduce((acc, trip) => {
+    // Only count trips whose status is COMPLETED
+    if (trip.status?.toUpperCase() !== 'COMPLETED') {
+      return acc;
+    }
+
+    // Safely check for missing dates
+    if (!trip.startDate || !trip.endDate) {
+      return acc;
+    }
+
+    const start = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+
+    // Validate that dates are valid Date instances
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return acc;
+    }
+
+    // Calculate calendar days difference (difference + 1) using UTC midnight to avoid DST/timezone drift
+    const utcStart = Date.UTC(start.getFullYear(), start.getMonth(), start.getDate());
+    const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
+    const diffDays = Math.round((utcEnd - utcStart) / (1000 * 60 * 60 * 24));
+
+    if (diffDays >= 0) {
+      return acc + diffDays + 1;
+    }
+
+    return acc;
+  }, 0);
 
   const fetchTrips = async () => {
     try {
@@ -96,165 +151,153 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div className="badge" style={{ marginBottom: '6px' }}>✈️ Workspace</div>
-            <h1 className="page-title" style={{ margin: 0 }}>Trip Dashboard</h1>
-          </div>
-          <NotificationBell />
-        </div>
-        <p className="hero-subtitle" style={{ fontSize: '1rem', marginBottom: '24px' }}>
-          Manage your trips, itineraries, weather alerts, and collaboration invitations
-        </p>
+    <div className="tp-dashboard-wrapper">
+      <div className="tp-dashboard-container-inner">
+        {/* ========================================================= */}
+        {/* 🧭 1. TOP BAR (Brand Logo & User Profile) */}
+        {/* ========================================================= */}
+        <div className="tp-dashboard-top-bar">
+          <Link to="/" className="tp-brand" title="TripPilot Home">
+            <div className="tp-brand-icon-plane">
+              <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" className="tp-plane-svg">
+                {/* Left wing body */}
+                <path d="M2.5 13L25.5 2.5L14 25.5L10.5 16L2.5 13Z" fill="#1e293b" />
+                {/* Right shaded wing */}
+                <path d="M10.5 16L25.5 2.5L14 25.5L10.5 16Z" fill="#0f172a" />
+                {/* Center crisp crease */}
+                <path d="M25.5 2.5L10.5 16" stroke="#ffffff" strokeWidth="1.2" strokeLinecap="round" />
+                {/* Under-fold flap */}
+                <path d="M10.5 16V21.5L13.5 18.5" fill="#334155" stroke="#334155" strokeWidth="1" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <div className="tp-brand-text-group">
+              <span className="tp-brand-name">TripPilot</span>
+              <span className="tp-brand-tagline">Plan • Explore • Belong</span>
+            </div>
+          </Link>
 
-        {/* ========================================================= */}
-        {/* 📩 PENDING INVITATIONS SECTION */}
-        {/* ========================================================= */}
-        <div
-          className="placeholder-box"
-          style={{
-            textAlign: 'left',
-            borderStyle: 'solid',
-            borderColor: 'rgba(56, 189, 248, 0.3)',
-            background: 'rgba(15, 23, 42, 0.7)',
-            marginBottom: '28px',
-            padding: '20px'
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <h3 style={{ color: '#ffffff', fontSize: '1.1rem', margin: 0 }}>
-              📩 Pending Trip Invitations
-            </h3>
-            {invitations.length > 0 && (
-              <span style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '700' }}>
-                {invitations.length} pending
-              </span>
+          <div className="tp-dashboard-top-right">
+            <NotificationBell />
+            {user && (
+              <Link to="/profile" className="tp-dashboard-user-pill" title="View Profile">
+                <div className="tp-dashboard-avatar">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <span className="tp-dashboard-username">
+                  {user?.name || 'Traveler'}
+                </span>
+              </Link>
             )}
           </div>
-
-          {actionSuccessMessage && (
-            <div className="alert alert-success" style={{ marginBottom: '12px' }}>
-              {actionSuccessMessage}
-            </div>
-          )}
-
-          {actionError && (
-            <div className="alert alert-error" style={{ marginBottom: '12px' }}>
-              {actionError}
-            </div>
-          )}
-
-          {invitationsLoading && (
-            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', margin: 0 }}>
-              Loading invitations...
-            </p>
-          )}
-
-          {!invitationsLoading && invitationsError && (
-            <div className="alert alert-error" style={{ marginBottom: 0 }}>
-              {invitationsError}
-            </div>
-          )}
-
-          {!invitationsLoading && !invitationsError && invitations.length === 0 && (
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>
-              No pending trip invitations.
-            </p>
-          )}
-
-          {!invitationsLoading && !invitationsError && invitations.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {invitations.map((inv) => {
-                const tripInfo = inv.tripId;
-                const inviter = inv.invitedBy;
-                const isProcessing = actionLoadingId === inv._id;
-
-                return (
-                  <div
-                    key={inv._id}
-                    style={{
-                      background: 'rgba(15, 23, 42, 0.8)',
-                      padding: '16px',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '10px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                      <div>
-                        <h4 style={{ color: '#ffffff', fontSize: '1.1rem', marginBottom: '4px' }}>
-                          {tripInfo?.title || 'Trip Workspace'}
-                        </h4>
-                        <p style={{ color: '#38bdf8', fontSize: '0.9rem', marginBottom: '4px', fontWeight: '600' }}>
-                          📍 {tripInfo?.destination || 'N/A'}
-                        </p>
-                        {tripInfo?.startDate && tripInfo?.endDate && (
-                          <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginBottom: '4px' }}>
-                            📅 {formatDateToDisplay(tripInfo.startDate)} - {formatDateToDisplay(tripInfo.endDate)}
-                          </p>
-                        )}
-                        <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
-                          👤 Invited by: <strong style={{ color: '#cbd5e1' }}>{inviter?.name || 'User'}</strong> ({inviter?.email || 'N/A'})
-                        </p>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                        <span className="badge" style={{ marginBottom: 0, fontSize: '0.75rem', padding: '4px 10px' }}>
-                          Role: {inv.role}
-                        </span>
-                        {inv.createdAt && (
-                          <span style={{ color: '#64748b', fontSize: '0.75rem' }}>
-                            {formatDateToDisplay(inv.createdAt)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {inv.inviteMessage && (
-                      <div style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '10px 12px', borderRadius: '8px', borderLeft: '3px solid #38bdf8' }}>
-                        <p style={{ color: '#cbd5e1', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
-                          💬 "{inv.inviteMessage}"
-                        </p>
-                      </div>
-                    )}
-
-                    <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '6px' }}>
-                      <button
-                        type="button"
-                        disabled={isProcessing}
-                        onClick={() => handleDeclineInvitation(inv._id)}
-                        className="btn btn-secondary btn-sm"
-                        style={{ fontSize: '0.85rem', opacity: isProcessing ? 0.6 : 1 }}
-                      >
-                        {isProcessing ? 'Processing...' : '✕ Decline'}
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isProcessing}
-                        onClick={() => handleAcceptInvitation(inv._id)}
-                        className="btn btn-primary btn-sm"
-                        style={{ fontSize: '0.85rem', opacity: isProcessing ? 0.6 : 1 }}
-                      >
-                        {isProcessing ? 'Processing...' : '✓ Accept'}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {/* ========================================================= */}
-        {/* ✈️ TRIPS LIST SECTION */}
+        {/* 🌅 2. HERO WELCOME BANNER ("Where to next?") */}
         {/* ========================================================= */}
-        <h3 style={{ color: '#ffffff', fontSize: '1.2rem', marginBottom: '14px' }}>
-          ✈️ My Trip Workspaces
-        </h3>
+        <div className="tp-dashboard-hero-banner">
+          {/* Scenic Panoramic Travel Landscape */}
+          <div className="tp-dashboard-hero-scenic" />
+
+          {/* Left Hero Content */}
+          <div className="tp-dashboard-hero-content">
+            <div className="tp-dashboard-hero-greeting">
+              Hello, {user?.name || 'Traveler'}! <span className="tp-wave-emoji">👋</span>
+            </div>
+            <h1 className="tp-dashboard-hero-heading">Where to next?</h1>
+            <p className="tp-dashboard-hero-subtitle">
+              Your next adventure is just a plan away.
+            </p>
+
+            <div className="tp-dashboard-hero-actions">
+              <Link to="/dashboard/create" className="tp-btn-banner-create">
+                <Plus size={16} /> Create a New Trip
+              </Link>
+              <Link to="/dashboard/discover-destinations" className="tp-btn-banner-explore">
+                <Search size={15} /> Explore Destinations
+              </Link>
+            </div>
+          </div>
+
+          {/* Floating script typography on scenic right side */}
+          <div className="tp-banner-badge-script">
+            <span className="tp-banner-script-line">Good</span>
+            <span className="tp-banner-script-line">Trips</span>
+            <span className="tp-banner-script-line">Better</span>
+            <span className="tp-banner-script-line">Stories</span>
+            <svg viewBox="0 0 110 14" fill="none" className="tp-banner-script-curve">
+              <path d="M3 10C35 3 75 3 107 9" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round" />
+            </svg>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* 📊 3. FOUR QUICK STATS CARDS */}
+        {/* ========================================================= */}
+        <div className="tp-dashboard-stats-row">
+          {/* Card 1: Total Trips (Warm Peach) */}
+          <div className="tp-dashboard-stat-card-v2 tp-stat-card-trips">
+            <div className="tp-stat-icon-box tp-stat-icon-trips">
+              <Briefcase size={20} />
+            </div>
+            <div className="tp-stat-text-group">
+              <div className="tp-stat-number">{trips.length}</div>
+              <div className="tp-stat-title">Total Trips</div>
+              <div className="tp-stat-subtitle">Journeys planned</div>
+            </div>
+          </div>
+
+          {/* Card 2: Destinations (Light Sky Blue) */}
+          <div className="tp-dashboard-stat-card-v2 tp-stat-card-destinations">
+            <div className="tp-stat-icon-box tp-stat-icon-destinations">
+              <MapPin size={20} />
+            </div>
+            <div className="tp-stat-text-group">
+              <div className="tp-stat-number">{uniqueDestinationsCount}</div>
+              <div className="tp-stat-title">Destinations</div>
+              <div className="tp-stat-subtitle">Places to explore</div>
+            </div>
+          </div>
+
+          {/* Card 3: Pending Invitations (Fresh Mint Green) */}
+          <div className="tp-dashboard-stat-card-v2 tp-stat-card-invites">
+            <div className="tp-stat-icon-box tp-stat-icon-invites">
+              <Mail size={20} />
+            </div>
+            <div className="tp-stat-text-group">
+              <div className="tp-stat-number">{invitations.length}</div>
+              <div className="tp-stat-title">Pending Invitations</div>
+              <div className="tp-stat-subtitle">Awaiting response</div>
+            </div>
+          </div>
+
+          {/* Card 4: Days Traveled (Soft Rose/Pink) */}
+          <div className="tp-dashboard-stat-card-v2 tp-stat-card-days">
+            <div className="tp-stat-icon-box tp-stat-icon-days">
+              <Heart size={20} />
+            </div>
+            <div className="tp-stat-text-group">
+              <div className="tp-stat-number">{daysTraveledCount}</div>
+              <div className="tp-stat-title">Days Traveled</div>
+              <div className="tp-stat-subtitle">Memories made</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ========================================================= */}
+        {/* ✈️ MY TRIPS SECTION */}
+        {/* ========================================================= */}
+        <div className="tp-workspaces-section-header">
+          <div className="tp-my-trips-heading-wrap">
+            <div className="tp-my-trips-eyebrow-wrap">
+              <span className="tp-my-trips-eyebrow-line" />
+              <span className="tp-my-trips-eyebrow">YOUR JOURNEYS</span>
+            </div>
+            <h2 className="tp-workspaces-title">My Trips</h2>
+            <p className="tp-workspaces-subtitle">
+              Your planned journeys, ready whenever you are.
+            </p>
+          </div>
+        </div>
 
         {loading && (
           <div className="placeholder-box">
@@ -267,102 +310,226 @@ export default function Dashboard() {
         )}
 
         {!loading && !error && trips.length === 0 && (
-          <div
-            style={{
-              background: 'rgba(15, 23, 42, 0.75)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              borderRadius: '16px',
-              padding: '40px 24px',
-              textAlign: 'center',
-              marginBottom: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '12px'
-            }}
-          >
-            <div style={{ fontSize: '3rem', lineHeight: '1', marginBottom: '4px' }}>🗺️</div>
-            <h3 style={{ color: '#ffffff', fontSize: '1.4rem', margin: 0, fontWeight: '700' }}>
+          <div className="tp-dashboard-empty-state">
+            <div className="tp-dashboard-empty-icon">🗺️</div>
+            <h3 className="tp-dashboard-empty-title">
               No Trips Yet
             </h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem', margin: '0 0 12px 0', maxWidth: '400px' }}>
+            <p className="tp-dashboard-empty-text">
               Start planning your next adventure with TripPilot.
             </p>
-            <Link to="/dashboard/create" className="btn btn-primary" style={{ fontSize: '0.95rem' }}>
+            <Link to="/dashboard/create" className="tp-btn-create-trip">
               + Create Your First Trip
             </Link>
           </div>
         )}
 
         {!loading && !error && trips.length > 0 && (
-          <div
-            className="trips-list"
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '16px',
-              marginBottom: '24px',
-              textAlign: 'left'
-            }}
-          >
+          <div className="tp-dashboard-grid">
             {trips.map((trip) => (
               <Link
                 key={trip._id}
                 to={`/dashboard/trip/${trip._id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
+                className="tp-dashboard-card"
               >
-                <div
-                  style={{
-                    background: 'rgba(15, 23, 42, 0.75)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    borderRadius: '16px',
-                    padding: '24px 20px',
-                    marginBottom: '0',
-                    textAlign: 'left',
-                    transition: 'all 0.25s ease',
-                    cursor: 'pointer'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-                    e.currentTarget.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(56, 189, 248, 0.1)';
-                    e.currentTarget.style.background = 'rgba(15, 23, 42, 0.9)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.12)';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.background = 'rgba(15, 23, 42, 0.75)';
-                  }}
-                >
-                  <h3 style={{ color: '#ffffff', marginBottom: '8px', fontSize: '1.2rem' }}>
-                    {trip.title}
-                  </h3>
-                  <p style={{ color: '#38bdf8', marginBottom: '6px', fontSize: '0.95rem' }}>
-                    📍 {trip.destination}
-                  </p>
-                  <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '4px' }}>
-                    📅 {formatDateToDisplay(trip.startDate)} -{' '}
-                    {formatDateToDisplay(trip.endDate)}
-                  </p>
-                  <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
-                    🏷️ Status: <strong>{trip.status}</strong>
-                  </p>
+                <div className="tp-dashboard-card-header">
+                  <h3 className="tp-dashboard-card-title">{trip.title}</h3>
+                  <span className="tp-dashboard-status-badge">
+                    {trip.status || 'Active'}
+                  </span>
+                </div>
+
+                <div className="tp-dashboard-card-location">
+                  <MapPin size={14} />
+                  <span>{trip.destination}</span>
+                </div>
+
+                <div className="tp-dashboard-card-dates">
+                  <Calendar size={14} />
+                  <span>
+                    {formatDateToDisplay(trip.startDate)} – {formatDateToDisplay(trip.endDate)}
+                  </span>
+                </div>
+
+                <div className="tp-dashboard-card-divider" />
+
+                <div className="tp-dashboard-card-footer">
+                  <span className="tp-dashboard-card-link">
+                    View Workspace <ArrowRight size={13} />
+                  </span>
                 </div>
               </Link>
             ))}
           </div>
         )}
+        {/* ========================================================= */}
+        {/* 📩 PENDING TRIP INVITATIONS SECTION */}
+        {/* ========================================================= */}
+        <section className="tp-invitations-card-section">
+          {/* Subtle Watermark Landscape Illustration (Right Side 25-35%) */}
+          <div className="tp-invitations-backdrop-watermark" aria-hidden="true">
+            <img
+              src="/dashboard-invitations-scenic.svg"
+              alt=""
+              className="tp-invitations-watermark-img"
+            />
+          </div>
 
-        <div className="nav-actions">
-          <Link to="/dashboard/create" className="btn btn-primary">
-            + Create New Trip
-          </Link>
-          <Link to="/dashboard/discover-destinations" className="btn btn-secondary">
-            🔎 Discover Destinations
-          </Link>
-          <Link to="/" className="btn btn-secondary">
-            ← Back to Home
+          <div className="tp-invitations-content-wrap">
+            <div className="tp-invitations-section-header">
+              <div>
+                <div className="tp-invitations-eyebrow-wrap">
+                  <span className="tp-invitations-eyebrow-line" />
+                  <span className="tp-invitations-eyebrow">INVITATIONS</span>
+                </div>
+                <div className="tp-invitations-title-group">
+                  <h2 className="tp-invitations-title">Pending Trip Invitations</h2>
+                  {invitations.length > 0 && (
+                    <span className="tp-invitations-count-badge">
+                      {invitations.length} Pending
+                    </span>
+                  )}
+                </div>
+                <p className="tp-invitations-subtitle">
+                  Trips you've been invited to join.
+                </p>
+              </div>
+            </div>
+
+            {actionSuccessMessage && (
+              <div className="alert alert-success" style={{ marginBottom: '14px', position: 'relative', zIndex: 2 }}>
+                {actionSuccessMessage}
+              </div>
+            )}
+
+            {actionError && (
+              <div className="alert alert-error" style={{ marginBottom: '14px', position: 'relative', zIndex: 2 }}>
+                {actionError}
+              </div>
+            )}
+
+            {invitationsLoading && (
+              <div className="placeholder-box" style={{ position: 'relative', zIndex: 2 }}>
+                <p>Loading invitations...</p>
+              </div>
+            )}
+
+            {!invitationsLoading && invitationsError && (
+              <div className="alert alert-error" style={{ marginBottom: 0, position: 'relative', zIndex: 2 }}>
+                {invitationsError}
+              </div>
+            )}
+
+            {!invitationsLoading && !invitationsError && invitations.length === 0 && (
+              <div className="tp-invitations-empty-card">
+                <div className="tp-invitations-empty-icon">
+                  <Mail size={20} />
+                </div>
+                <div className="tp-invitations-empty-text-group">
+                  <h3 className="tp-invitations-empty-title">No Pending Invitations</h3>
+                  <p className="tp-invitations-empty-text">You're all caught up.</p>
+                </div>
+              </div>
+            )}
+
+            {!invitationsLoading && !invitationsError && invitations.length > 0 && (
+              <div className="tp-invitations-list">
+              {invitations.map((inv) => {
+                const tripInfo = inv.tripId;
+                const inviter = inv.invitedBy;
+                const isProcessing = actionLoadingId === inv._id;
+
+                return (
+                  <div key={inv._id} className="tp-invitation-card">
+                    {/* Left Column: Icon + Trip & Inviter Information */}
+                    <div className="tp-invitation-main">
+                      <div className="tp-invitation-icon-wrap">
+                        <Compass size={18} />
+                      </div>
+
+                      <div className="tp-invitation-details">
+                        <div className="tp-invitation-title-row">
+                          <h3 className="tp-invitation-title">
+                            {tripInfo?.title || 'Trip Workspace'}
+                          </h3>
+                          {inv.role && (
+                            <span className="tp-invitation-role-badge">
+                              Role: {inv.role}
+                            </span>
+                          )}
+                          {inv.createdAt && (
+                            <span className="tp-invitation-date-received">
+                              {formatDateToDisplay(inv.createdAt)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="tp-invitation-meta">
+                          {tripInfo?.destination && (
+                            <div className="tp-invitation-meta-item">
+                              <MapPin size={14} />
+                              <span>{tripInfo.destination}</span>
+                            </div>
+                          )}
+                          {tripInfo?.startDate && tripInfo?.endDate && (
+                            <div className="tp-invitation-meta-item">
+                              <Calendar size={14} />
+                              <span>
+                                {formatDateToDisplay(tripInfo.startDate)} – {formatDateToDisplay(tripInfo.endDate)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="tp-invitation-inviter">
+                          <User size={13} />
+                          <span>
+                            Invited by <strong>{inviter?.name || 'User'}</strong>
+                            {inviter?.email && ` (${inviter.email})`}
+                          </span>
+                        </div>
+
+                        {inv.inviteMessage && (
+                          <div className="tp-invitation-message">
+                            <MessageSquare size={13} />
+                            <p>"{inv.inviteMessage}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right Column: Actions */}
+                    <div className="tp-invitation-actions">
+                      <button
+                        type="button"
+                        disabled={isProcessing}
+                        onClick={() => handleDeclineInvitation(inv._id)}
+                        className="tp-btn-decline"
+                      >
+                        <X size={14} /> {isProcessing ? 'Processing...' : 'Decline'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={isProcessing}
+                        onClick={() => handleAcceptInvitation(inv._id)}
+                        className="tp-btn-accept"
+                      >
+                        <Check size={14} /> {isProcessing ? 'Processing...' : 'Accept'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          </div>
+        </section>
+
+        {/* Back to Home Navigation */}
+        <div className="tp-invitations-bottom-nav">
+          <Link to="/" className="tp-invitations-back-link">
+            Back to Home <ArrowRight size={14} />
           </Link>
         </div>
       </div>

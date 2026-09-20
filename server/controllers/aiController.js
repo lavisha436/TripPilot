@@ -33,7 +33,27 @@ export const discoverDestinations = asyncHandler(async (req, res) => {
  * POST /api/v1/ai/generate-itinerary
  */
 export const generateItinerary = asyncHandler(async (req, res) => {
-  const result = await aiService.generateItinerary(req.body);
+  const tripParams = { ...req.body };
+
+  // Fallback: If budget is missing or <= 0, but tripId is supplied, lookup trip from DB
+  if ((!tripParams.budget || Number(tripParams.budget) <= 0) && tripParams.tripId) {
+    const { Trip } = await import('../models/Trip.js');
+    const trip = await Trip.findById(tripParams.tripId);
+    if (trip?.budget) {
+      const itin = Number(trip.budget.itineraryBudget);
+      const est = Number(trip.budget.estimated);
+      const resTotal =
+        (Number(trip.budget?.reserved?.intercityTransport) || 0) +
+        (Number(trip.budget?.reserved?.accommodation) || 0) +
+        (Number(trip.budget?.reserved?.buffer) || 0);
+      const computedItin = itin > 0 ? itin : est > resTotal ? est - resTotal : est;
+      if (computedItin > 0) {
+        tripParams.budget = computedItin;
+      }
+    }
+  }
+
+  const result = await aiService.generateItinerary(tripParams);
 
   return res.status(200).json(
     new ApiResponse(

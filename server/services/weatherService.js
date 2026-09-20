@@ -414,11 +414,43 @@ export const analyzeWeatherForTrip = async (tripId) => {
     }
   }
 
+  const availableDays = days.filter((d) => d.isForecastAvailable);
+  const hasAvailableForecasts = availableDays.length > 0;
+  const allForecastsAvailable = days.length > 0 && availableDays.length === days.length;
+  const hasSevereWeather = severeDays.length > 0;
+
+  const severeConditions = [];
+  severeDays.forEach((d) => {
+    (d.weatherConditions || []).forEach((c) => {
+      severeConditions.push({
+        ...c,
+        date: d.date,
+        dayNumber: d.dayNumber
+      });
+    });
+  });
+
+  let overallSummary = '';
+  if (!hasAvailableForecasts) {
+    overallSummary = 'Weather forecast data is currently unavailable for these trip dates (forecasts are available up to 5 days in advance).';
+  } else if (hasSevereWeather) {
+    const typesSummary = Array.from(new Set(severeConditions.map((c) => c.condition))).join(' and ') || 'Severe weather';
+    overallSummary = `${typesSummary} expected during the trip. Review day-by-day advisories and adjust scheduled activities accordingly.`;
+  } else if (!allForecastsAvailable) {
+    overallSummary = 'Fair weather conditions for upcoming dates with forecast data. Remaining dates are outside the 5-day forecast window.';
+  } else {
+    overallSummary = 'Fair weather conditions expected across all trip dates with no severe weather alerts.';
+  }
+
   return {
     tripId: trip._id.toString(),
     destination: trip.destination,
     startDate: startDateIso,
-    hasAvailableForecasts: days.some((d) => d.isForecastAvailable),
+    hasAvailableForecasts,
+    allForecastsAvailable,
+    hasSevereWeather,
+    severeConditions,
+    overallSummary,
     days
   };
 };

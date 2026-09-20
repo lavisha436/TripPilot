@@ -59,11 +59,19 @@ export const saveItineraryCandidate = async (userId, tripId, itineraryPayload) =
       throw new ApiError(404, 'Trip workspace not found.');
     }
 
-    // Read target itinerary budget (using itineraryBudget with fallback to estimated for legacy trips)
+    // Read target itinerary budget (using positive itineraryBudget with fallback to unreserved or estimated budget)
+    const itinBudgetVal = Number(trip.budget?.itineraryBudget);
+    const estBudgetVal = Number(trip.budget?.estimated) || 0;
+    const reservedVal =
+      (Number(trip.budget?.reserved?.intercityTransport) || 0) +
+      (Number(trip.budget?.reserved?.accommodation) || 0) +
+      (Number(trip.budget?.reserved?.buffer) || 0);
     const targetBudget =
-      trip.budget?.itineraryBudget !== undefined && trip.budget?.itineraryBudget !== null
-        ? Number(trip.budget.itineraryBudget)
-        : Number(trip.budget?.estimated) || 0;
+      Number.isFinite(itinBudgetVal) && itinBudgetVal > 0
+        ? itinBudgetVal
+        : estBudgetVal > reservedVal && estBudgetVal - reservedVal > 0
+        ? estBudgetVal - reservedVal
+        : estBudgetVal;
 
     // Helper to calculate backend sum of all Activity.estimatedCost values
     const computeTotalCost = (acts) =>

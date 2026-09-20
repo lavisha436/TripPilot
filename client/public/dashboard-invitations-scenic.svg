@@ -1,0 +1,84 @@
+<svg viewBox="0 0 460 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Soft lit dune facet -->
+    <linearGradient id="litFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fde9dc" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#f9dcc9" stop-opacity="0.75" />
+    </linearGradient>
+    <!-- Soft shade dune facet -->
+    <linearGradient id="shadeFacet" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5ceb8" stop-opacity="0.85" />
+      <stop offset="100%" stop-color="#ebbe9f" stop-opacity="0.7" />
+    </linearGradient>
+    <linearGradient id="backDune" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fae5d6" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#f5cfb6" stop-opacity="0.4" />
+    </linearGradient>
+    <linearGradient id="foreDune" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fce2d2" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#f5caa9" stop-opacity="0.95" />
+    </linearGradient>
+  </defs>
+
+  <!-- Distant Background Ridge -->
+  <path d="M30,260 Q85,155 140,135 Q180,120 220,150 Q260,170 310,195 L310,260 Z" fill="url(#backDune)" />
+
+  <!-- Soft Warm Sun -->
+  <circle cx="190" cy="96" r="24" fill="#fde3d0" opacity="0.95" />
+  <circle cx="190" cy="96" r="38" fill="#fdeada" opacity="0.35" />
+
+  <!-- Distant Soaring Birds -->
+  <path d="M230,76 Q234,72 238,76 Q242,72 246,76" stroke="#d98b68" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.55" />
+  <path d="M244,66 Q247,63 250,66 Q253,63 256,66" stroke="#d98b68" stroke-width="1.0" stroke-linecap="round" fill="none" opacity="0.48" />
+
+  <!-- Main Desert Pyramid Mountain Dune -->
+  <!-- Lit Side (Left Slope) -->
+  <path d="M265,80 L218,175 L260,210 L290,230 L110,260 L320,260 L265,80 Z" fill="url(#litFacet)" />
+  <!-- Shadow Side (Right Slope) -->
+  <path d="M265,80 L395,175 Q430,195 460,210 L460,260 L320,260 L265,80 Z" fill="url(#shadeFacet)" />
+  <!-- Ridge Line -->
+  <path d="M265,80 L218,175 Q245,198 290,230" stroke="#fad5bf" stroke-width="1.5" fill="none" opacity="0.7" />
+
+  <!-- Tropical Palm Tree 1 (Tall, Foreground) -->
+  <g id="tree1" opacity="0.88">
+    <!-- Trunk with natural arch - rooted safely in dune -->
+    <path d="M362,225 C360,185 352,130 340,68 C343,68 352,130 367,225 Z" fill="#dda688" />
+    <!-- Trunk bark marks -->
+    <path d="M356,200 Q361,202 364,200" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+    <path d="M352,165 Q356,167 360,165" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+    <path d="M347,130 Q351,132 355,130" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+    <path d="M343,95 Q347,97 350,95" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+
+    <!-- Lush Curved Fronds -->
+    <path d="M340,68 C315,55 285,62 258,88 C280,72 312,68 340,68 Z" fill="#dca081" />
+    <path d="M340,68 C310,68 280,82 252,106 C276,88 310,80 340,68 Z" fill="#e5af92" />
+    <path d="M340,68 C320,38 305,18 290,5 C308,24 326,44 340,68 Z" fill="#dca081" />
+    <path d="M340,68 C328,48 315,30 305,15 C320,35 332,52 340,68 Z" fill="#e5af92" />
+    <path d="M340,68 C358,35 380,18 402,8 C390,30 372,50 340,68 Z" fill="#e5af92" />
+    <path d="M340,68 C352,48 370,32 390,20 C378,38 362,54 340,68 Z" fill="#dca081" />
+    <path d="M340,68 C372,48 405,55 435,78 C405,65 370,68 340,68 Z" fill="#dca081" />
+    <path d="M340,68 C375,60 410,75 440,105 C408,85 372,78 340,68 Z" fill="#e5af92" />
+    <path d="M340,68 C370,78 398,102 418,135 C395,110 368,90 340,68 Z" fill="#cca085" />
+    <path d="M340,68 C318,80 292,102 272,132 C292,108 318,90 340,68 Z" fill="#cca085" />
+  </g>
+
+  <!-- Tropical Palm Tree 2 (Shorter, Leaning Right) -->
+  <g id="tree2" opacity="0.80">
+    <!-- Trunk - rooted safely in dune -->
+    <path d="M404,228 C407,185 416,145 425,98 C422,98 412,145 397,228 Z" fill="#dca081" />
+    <path d="M403,205 Q407,207 410,205" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+    <path d="M408,170 Q412,172 415,170" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+    <path d="M414,135 Q417,137 420,135" stroke="#c98e6f" stroke-width="1.1" fill="none" />
+
+    <!-- Fronds -->
+    <path d="M425,98 C398,75 365,85 338,108 C365,94 398,92 425,98 Z" fill="#dca081" />
+    <path d="M425,98 C405,62 388,40 372,25 C390,46 408,72 425,98 Z" fill="#e5af92" />
+    <path d="M425,98 C445,62 468,40 488,28 C472,52 452,76 425,98 Z" fill="#dca081" />
+    <path d="M425,98 C455,75 485,82 510,105 C482,92 452,94 425,98 Z" fill="#cca085" />
+    <path d="M425,98 C455,108 480,132 498,162 C478,138 450,120 425,98 Z" fill="#cca085" />
+    <path d="M425,98 C400,108 375,130 355,158 C375,135 400,118 425,98 Z" fill="#cca085" />
+  </g>
+
+  <!-- Foreground Dune Swell (Drawn after trees to naturally cover base) -->
+  <path d="M150,260 Q210,215 280,210 Q350,205 430,225 L460,235 L460,260 Z" fill="url(#foreDune)" />
+</svg>

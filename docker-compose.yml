@@ -1,0 +1,55 @@
+services:
+  # 1. MongoDB Database Service
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - trippilot-network
+    restart: unless-stopped
+
+  # 2. TripPilot Backend API & Real-time Server (Node.js + Express)
+  server:
+    build:
+      context: ./server
+    container_name: trippilot-server
+    depends_on:
+      - mongo
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=development
+      - CLIENT_URL=http://localhost:3000
+      - PORT=5000
+      - MONGO_URI=mongodb://mongo:27017/trippilot
+    ports:
+      - "5000:5000"
+    networks:
+      - trippilot-network
+    restart: unless-stopped
+
+  # 3. TripPilot Frontend Client (React + Vite + NGINX)
+  client:
+    build:
+      context: ./client
+      args:
+        VITE_API_BASE_URL: http://localhost:5000/api/v1
+    container_name: trippilot-client
+    ports:
+      - "3000:80"
+    networks:
+      - trippilot-network
+    restart: unless-stopped
+
+# Pre-existing Docker network shared by all services
+networks:
+  trippilot-network:
+    external: true
+
+# Pre-existing persistent volume for MongoDB data
+volumes:
+  mongo_data:
+    external: true

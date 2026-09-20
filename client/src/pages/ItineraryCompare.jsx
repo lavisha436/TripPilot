@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import {
+  ArrowLeft,
+  Scale,
+  Star,
+  Check,
+  AlertTriangle,
+  Clock,
+  MapPin,
+  Calendar,
+  Loader2
+} from 'lucide-react';
 
 /**
  * ⚖️ ItineraryCompare Page Component: Displays side-by-side comparison of two selected itinerary candidates
@@ -142,35 +153,87 @@ export default function ItineraryCompare() {
   };
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '1200px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">⚖️ Side-by-Side Comparison</div>
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '20px' }}>
-          <div>
-            <h1 className="page-title" style={{ fontSize: '2.2rem', marginBottom: '4px' }}>
-              Compare Itineraries
-            </h1>
-            <p className="hero-subtitle" style={{ fontSize: '0.95rem', margin: 0 }}>
-              Evaluate schedule differences, places, and estimated costs side-by-side
-            </p>
-          </div>
-          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-secondary btn-sm">
-            ← Back to Itineraries
+    <div className="tp-workspace-subpage">
+      <div className="tp-subpage-container" style={{ maxWidth: '1200px' }}>
+        {/* Header */}
+        <div className="tp-subpage-header">
+          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-subpage-back-link">
+            <ArrowLeft size={16} />
+            <span>Back to Itineraries</span>
           </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                padding: '3px 10px',
+                borderRadius: '50px',
+                background: 'rgba(234, 88, 12, 0.08)',
+                color: '#ea580c',
+                border: '1px solid rgba(234, 88, 12, 0.18)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <Scale size={12} /> Side-by-Side Comparison
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginTop: '6px' }}>
+            <div>
+              <h1 className="tp-subpage-title" style={{ margin: 0 }}>
+                Compare Itineraries
+              </h1>
+              <p className="tp-subpage-subtitle" style={{ margin: '4px 0 0 0' }}>
+                Evaluate schedule differences, places, and estimated costs side-by-side
+              </p>
+            </div>
+            <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-action-btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <ArrowLeft size={15} /> Back to Itineraries
+            </Link>
+          </div>
         </div>
 
         {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px' }}>
-            <p>Loading itinerary comparison...</p>
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid rgba(15, 23, 42, 0.08)',
+              borderRadius: '16px',
+              padding: '48px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <Loader2 size={28} className="animate-spin" style={{ color: '#ea580c', margin: '0 auto 12px auto' }} />
+            <p style={{ color: '#64748b', fontSize: '0.92rem', margin: 0 }}>Loading itinerary comparison...</p>
           </div>
         )}
 
         {!loading && error && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px', borderStyle: 'solid' }}>
-            <div className="alert alert-error" style={{ marginBottom: '16px' }}>{error}</div>
-            <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-primary">
-              ← Return to Candidate List
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #fecaca',
+              borderRadius: '16px',
+              padding: '32px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <div
+              style={{
+                marginBottom: '16px',
+                padding: '12px 18px',
+                background: '#fef2f2',
+                borderRadius: '8px',
+                color: '#991b1b',
+                fontSize: '0.92rem'
+              }}
+            >
+              {error}
+            </div>
+            <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-action-btn-primary">
+              Return to Candidate List
             </Link>
           </div>
         )}
@@ -178,28 +241,40 @@ export default function ItineraryCompare() {
         {/* Final Selection Confirmation Card */}
         {confirmingItinerary && (
           <div
-            className="placeholder-box"
             style={{
-              background: 'rgba(239, 68, 68, 0.12)',
-              borderColor: 'rgba(239, 68, 68, 0.4)',
+              background: '#fff7ed',
+              border: '1px solid #fed7aa',
+              borderRadius: '16px',
               marginBottom: '24px',
-              textAlign: 'left',
-              borderStyle: 'solid',
-              padding: '24px'
+              padding: '24px',
+              boxShadow: '0 4px 20px rgba(234, 88, 12, 0.06)'
             }}
           >
-            <h3 style={{ color: '#fca5a5', fontSize: '1.2rem', marginBottom: '8px' }}>
-              ⚠️ Confirm Final Itinerary Selection
-            </h3>
-            <p style={{ color: '#ffffff', fontSize: '1rem', fontWeight: '600', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <AlertTriangle size={18} style={{ color: '#ea580c' }} />
+              <h3 style={{ color: '#9a3412', fontSize: '1.15rem', fontWeight: '700', margin: 0 }}>
+                Confirm Final Itinerary Selection
+              </h3>
+            </div>
+            <p style={{ color: '#0f172a', fontSize: '1rem', fontWeight: '600', marginBottom: '6px' }}>
               Are you sure you want to use "{confirmingItinerary.title}"?
             </p>
-            <p style={{ color: '#cbd5e1', fontSize: '0.9rem', marginBottom: '16px', lineHeight: '1.5' }}>
-              After you confirm, all other saved itinerary candidates for this trip will be permanently deleted. Only this itinerary will remain.
+            <p style={{ color: '#7c2d12', fontSize: '0.88rem', marginBottom: '18px', lineHeight: '1.5' }}>
+              After you confirm, all other saved itinerary candidates for this trip will be permanently removed. Only this itinerary will remain.
             </p>
 
             {activateError && (
-              <div className="alert alert-error" style={{ marginBottom: '16px' }}>
+              <div
+                style={{
+                  marginBottom: '14px',
+                  padding: '10px 14px',
+                  background: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '8px',
+                  color: '#991b1b',
+                  fontSize: '0.85rem'
+                }}
+              >
                 {activateError}
               </div>
             )}
@@ -209,23 +284,21 @@ export default function ItineraryCompare() {
                 type="button"
                 onClick={handleConfirmActivate}
                 disabled={activating}
-                className="btn"
+                className="tp-action-btn-primary"
                 style={{
-                  background: '#22c55e',
-                  color: '#ffffff',
-                  border: 'none',
-                  fontWeight: '700',
-                  opacity: activating ? 0.6 : 1,
-                  cursor: activating ? 'not-allowed' : 'pointer'
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
                 }}
               >
-                {activating ? 'Selecting Itinerary...' : '✓ Yes, Use This Itinerary'}
+                <Check size={16} />
+                {activating ? 'Selecting Itinerary...' : 'Yes, Use This Itinerary'}
               </button>
               <button
                 type="button"
                 onClick={handleCancelSelection}
                 disabled={activating}
-                className="btn btn-secondary"
+                className="tp-action-btn-secondary"
               >
                 Cancel
               </button>
@@ -239,81 +312,91 @@ export default function ItineraryCompare() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                gap: '16px',
-                marginBottom: '24px'
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: '20px',
+                marginBottom: '28px'
               }}
             >
               {/* Candidate A Summary Card */}
               <div
-                className="placeholder-box"
                 style={{
-                  marginBottom: 0,
-                  textAlign: 'left',
-                  borderStyle: 'solid',
-                  borderColor: candidateA.itinerary?.isActive ? 'rgba(56, 189, 248, 0.4)' : 'rgba(255, 255, 255, 0.1)',
-                  background: candidateA.itinerary?.isActive ? 'rgba(56, 189, 248, 0.08)' : 'rgba(15, 23, 42, 0.7)'
+                  background: '#ffffff',
+                  border: candidateA.itinerary?.isActive ? '2px solid #ea580c' : '1px solid rgba(15, 23, 42, 0.08)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 2px 12px rgba(15, 23, 42, 0.03)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <h3 style={{ color: '#ffffff', fontSize: '1.2rem', margin: 0 }}>
+                  <h3 style={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
                     {candidateA.itinerary?.title}
                   </h3>
                   {candidateA.itinerary?.isActive && (
                     <span
                       style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.72rem',
                         fontWeight: '700',
-                        padding: '2px 8px',
+                        padding: '3px 8px',
                         borderRadius: '50px',
-                        background: 'rgba(56, 189, 248, 0.25)',
-                        color: '#38bdf8'
+                        background: 'rgba(234, 88, 12, 0.1)',
+                        color: '#ea580c',
+                        border: '1px solid rgba(234, 88, 12, 0.25)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
                       }}
                     >
-                      ⭐ Active
+                      <Star size={11} /> Active
                     </span>
                   )}
                 </div>
-                <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '12px' }}>
-                  {candidateA.itinerary?.source === 'AI_GENERATED' ? '✨ AI Generated' : '✍️ Manual Plan'}
+                <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '14px' }}>
+                  {candidateA.itinerary?.source === 'AI_GENERATED' ? 'Smart Plan' : 'Manual Plan'}
                 </p>
-                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-                  <span>🎯 <strong>{candidateA.activities?.length || 0}</strong> Activities</span>
-                  <span>💰 Estimated Cost: <strong>₹{getCost(candidateA)}</strong></span>
+                <div style={{ fontSize: '0.88rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '18px' }}>
+                  <span>Activities: <strong style={{ color: '#0f172a' }}>{candidateA.activities?.length || 0}</strong></span>
+                  <span>Estimated Cost: <strong style={{ color: '#0f172a' }}>₹{Number(getCost(candidateA)).toLocaleString('en-IN')}</strong></span>
                 </div>
 
                 <div style={{ marginTop: 'auto' }}>
                   {candidateA.itinerary?.isActive ? (
                     <span
                       style={{
-                        display: 'inline-block',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
                         fontSize: '0.85rem',
                         fontWeight: '700',
                         padding: '8px 16px',
                         borderRadius: '50px',
-                        background: 'rgba(56, 189, 248, 0.25)',
-                        color: '#38bdf8',
-                        border: '1px solid rgba(56, 189, 248, 0.4)'
+                        background: 'rgba(234, 88, 12, 0.08)',
+                        color: '#ea580c',
+                        border: '1px solid rgba(234, 88, 12, 0.2)'
                       }}
                     >
-                      ⭐ Active Itinerary
+                      <Star size={13} /> Active Itinerary
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleInitiateSelection(candidateA.itinerary)}
                       disabled={activating}
-                      className="btn btn-primary btn-sm"
+                      className="tp-action-btn-primary"
                       style={{
                         width: '100%',
-                        fontSize: '0.9rem',
-                        opacity: activating ? 0.6 : 1,
-                        cursor: activating ? 'not-allowed' : 'pointer'
+                        fontSize: '0.88rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
                       }}
                     >
+                      <Check size={16} />
                       {activating && confirmingItinerary?._id === candidateA.itinerary?._id
                         ? 'Selecting Itinerary...'
-                        : '✅ Use This Itinerary'}
+                        : 'Use This Itinerary'}
                     </button>
                   )}
                 </div>
@@ -321,74 +404,84 @@ export default function ItineraryCompare() {
 
               {/* Candidate B Summary Card */}
               <div
-                className="placeholder-box"
                 style={{
-                  marginBottom: 0,
-                  textAlign: 'left',
-                  borderStyle: 'solid',
-                  borderColor: candidateB.itinerary?.isActive ? 'rgba(56, 189, 248, 0.4)' : 'rgba(255, 255, 255, 0.1)',
-                  background: candidateB.itinerary?.isActive ? 'rgba(56, 189, 248, 0.08)' : 'rgba(15, 23, 42, 0.7)'
+                  background: '#ffffff',
+                  border: candidateB.itinerary?.isActive ? '2px solid #ea580c' : '1px solid rgba(15, 23, 42, 0.08)',
+                  borderRadius: '16px',
+                  padding: '24px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 2px 12px rgba(15, 23, 42, 0.03)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <h3 style={{ color: '#ffffff', fontSize: '1.2rem', margin: 0 }}>
+                  <h3 style={{ color: '#0f172a', fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
                     {candidateB.itinerary?.title}
                   </h3>
                   {candidateB.itinerary?.isActive && (
                     <span
                       style={{
-                        fontSize: '0.7rem',
+                        fontSize: '0.72rem',
                         fontWeight: '700',
-                        padding: '2px 8px',
+                        padding: '3px 8px',
                         borderRadius: '50px',
-                        background: 'rgba(56, 189, 248, 0.25)',
-                        color: '#38bdf8'
+                        background: 'rgba(234, 88, 12, 0.1)',
+                        color: '#ea580c',
+                        border: '1px solid rgba(234, 88, 12, 0.25)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px'
                       }}
                     >
-                      ⭐ Active
+                      <Star size={11} /> Active
                     </span>
                   )}
                 </div>
-                <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '12px' }}>
-                  {candidateB.itinerary?.source === 'AI_GENERATED' ? '✨ AI Generated' : '✍️ Manual Plan'}
+                <p style={{ color: '#64748b', fontSize: '0.85rem', marginBottom: '14px' }}>
+                  {candidateB.itinerary?.source === 'AI_GENERATED' ? 'Smart Plan' : 'Manual Plan'}
                 </p>
-                <div style={{ fontSize: '0.9rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '16px' }}>
-                  <span>🎯 <strong>{candidateB.activities?.length || 0}</strong> Activities</span>
-                  <span>💰 Estimated Cost: <strong>₹{getCost(candidateB)}</strong></span>
+                <div style={{ fontSize: '0.88rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '18px' }}>
+                  <span>Activities: <strong style={{ color: '#0f172a' }}>{candidateB.activities?.length || 0}</strong></span>
+                  <span>Estimated Cost: <strong style={{ color: '#0f172a' }}>₹{Number(getCost(candidateB)).toLocaleString('en-IN')}</strong></span>
                 </div>
 
                 <div style={{ marginTop: 'auto' }}>
                   {candidateB.itinerary?.isActive ? (
                     <span
                       style={{
-                        display: 'inline-block',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
                         fontSize: '0.85rem',
                         fontWeight: '700',
                         padding: '8px 16px',
                         borderRadius: '50px',
-                        background: 'rgba(56, 189, 248, 0.25)',
-                        color: '#38bdf8',
-                        border: '1px solid rgba(56, 189, 248, 0.4)'
+                        background: 'rgba(234, 88, 12, 0.08)',
+                        color: '#ea580c',
+                        border: '1px solid rgba(234, 88, 12, 0.2)'
                       }}
                     >
-                      ⭐ Active Itinerary
+                      <Star size={13} /> Active Itinerary
                     </span>
                   ) : (
                     <button
                       type="button"
                       onClick={() => handleInitiateSelection(candidateB.itinerary)}
                       disabled={activating}
-                      className="btn btn-primary btn-sm"
+                      className="tp-action-btn-primary"
                       style={{
                         width: '100%',
-                        fontSize: '0.9rem',
-                        opacity: activating ? 0.6 : 1,
-                        cursor: activating ? 'not-allowed' : 'pointer'
+                        fontSize: '0.88rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px'
                       }}
                     >
+                      <Check size={16} />
                       {activating && confirmingItinerary?._id === candidateB.itinerary?._id
                         ? 'Selecting Itinerary...'
-                        : '✅ Use This Itinerary'}
+                        : 'Use This Itinerary'}
                     </button>
                   )}
                 </div>
@@ -396,20 +489,30 @@ export default function ItineraryCompare() {
             </div>
 
             {/* Day-by-Day Schedule Grid Comparison */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '28px' }}>
               {allDays.map((dayNum) => {
                 const dayActivitiesA = groupedA[dayNum] || [];
                 const dayActivitiesB = groupedB[dayNum] || [];
 
                 return (
-                  <div key={dayNum}>
+                  <div
+                    key={dayNum}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid rgba(15, 23, 42, 0.08)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)'
+                    }}
+                  >
                     <h3
                       style={{
-                        color: '#38bdf8',
+                        color: '#0f172a',
                         fontSize: '1.15rem',
-                        marginBottom: '12px',
-                        borderBottom: '1px solid rgba(56, 189, 248, 0.2)',
-                        paddingBottom: '6px'
+                        fontWeight: '700',
+                        marginBottom: '16px',
+                        borderBottom: '1px solid rgba(15, 23, 42, 0.06)',
+                        paddingBottom: '8px'
                       }}
                     >
                       Day {dayNum} Schedule Comparison
@@ -418,21 +521,18 @@ export default function ItineraryCompare() {
                     <div
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                        gap: '16px'
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                        gap: '20px'
                       }}
                     >
                       {/* Candidate A Day Activities */}
-                      <div
-                        className="placeholder-box"
-                        style={{ marginBottom: 0, textAlign: 'left', borderStyle: 'solid', background: 'rgba(15, 23, 42, 0.5)' }}
-                      >
-                        <h4 style={{ color: '#ffffff', fontSize: '0.95rem', marginBottom: '10px', opacity: 0.8 }}>
-                          {candidateA.itinerary?.title} (Day {dayNum})
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <h4 style={{ color: '#475569', fontSize: '0.9rem', fontWeight: '700', margin: '0 0 6px 0' }}>
+                          {candidateA.itinerary?.title}
                         </h4>
 
                         {dayActivitiesA.length === 0 ? (
-                          <p style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                          <p style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
                             No activities planned for Day {dayNum}.
                           </p>
                         ) : (
@@ -441,31 +541,39 @@ export default function ItineraryCompare() {
                               <div
                                 key={act._id}
                                 style={{
-                                  background: 'rgba(15, 23, 42, 0.7)',
+                                  background: '#f8fafc',
                                   padding: '12px 14px',
                                   borderRadius: '10px',
-                                  border: '1px solid rgba(255, 255, 255, 0.08)'
+                                  border: '1px solid rgba(15, 23, 42, 0.06)'
                                 }}
                               >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                  <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.8rem' }}>
-                                    ⏰ {formatTimeTo12Hour(act.time) || 'Schedule'}
+                                  <span style={{ color: '#ea580c', fontWeight: '700', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Clock size={12} /> {formatTimeTo12Hour(act.time) || 'Flexible'}
                                   </span>
-                                  <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-                                    ⏱️ {act.estimatedDurationMinutes}m
-                                  </span>
+                                  {act.estimatedDurationMinutes && (
+                                    <span style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                                      {act.estimatedDurationMinutes}m
+                                    </span>
+                                  )}
                                 </div>
-                                <p style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '4px' }}>
+                                <p style={{ color: '#0f172a', fontSize: '0.92rem', fontWeight: '600', margin: '0 0 4px 0' }}>
                                   {act.title}
                                 </p>
                                 {act.description && (
-                                  <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginBottom: '6px', lineHeight: '1.3' }}>
+                                  <p style={{ color: '#475569', fontSize: '0.82rem', margin: '0 0 6px 0', lineHeight: '1.4' }}>
                                     {act.description}
                                   </p>
                                 )}
-                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: '#94a3b8', flexWrap: 'wrap' }}>
-                                  {act.location?.name && <span>📍 {act.location.name}</span>}
-                                  <span>💰 ₹{act.estimatedCost}</span>
+                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.78rem', color: '#64748b', flexWrap: 'wrap' }}>
+                                  {act.location?.name && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                      <MapPin size={11} style={{ color: '#ea580c' }} /> {act.location.name}
+                                    </span>
+                                  )}
+                                  {act.estimatedCost !== undefined && (
+                                    <span>₹{Number(act.estimatedCost).toLocaleString('en-IN')}</span>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -474,16 +582,13 @@ export default function ItineraryCompare() {
                       </div>
 
                       {/* Candidate B Day Activities */}
-                      <div
-                        className="placeholder-box"
-                        style={{ marginBottom: 0, textAlign: 'left', borderStyle: 'solid', background: 'rgba(15, 23, 42, 0.5)' }}
-                      >
-                        <h4 style={{ color: '#ffffff', fontSize: '0.95rem', marginBottom: '10px', opacity: 0.8 }}>
-                          {candidateB.itinerary?.title} (Day {dayNum})
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <h4 style={{ color: '#475569', fontSize: '0.9rem', fontWeight: '700', margin: '0 0 6px 0' }}>
+                          {candidateB.itinerary?.title}
                         </h4>
 
                         {dayActivitiesB.length === 0 ? (
-                          <p style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic' }}>
+                          <p style={{ color: '#94a3b8', fontSize: '0.85rem', fontStyle: 'italic', margin: 0 }}>
                             No activities planned for Day {dayNum}.
                           </p>
                         ) : (
@@ -492,31 +597,39 @@ export default function ItineraryCompare() {
                               <div
                                 key={act._id}
                                 style={{
-                                  background: 'rgba(15, 23, 42, 0.7)',
+                                  background: '#f8fafc',
                                   padding: '12px 14px',
                                   borderRadius: '10px',
-                                  border: '1px solid rgba(255, 255, 255, 0.08)'
+                                  border: '1px solid rgba(15, 23, 42, 0.06)'
                                 }}
                               >
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                  <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.8rem' }}>
-                                    ⏰ {formatTimeTo12Hour(act.time) || 'Schedule'}
+                                  <span style={{ color: '#ea580c', fontWeight: '700', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <Clock size={12} /> {formatTimeTo12Hour(act.time) || 'Flexible'}
                                   </span>
-                                  <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>
-                                    ⏱️ {act.estimatedDurationMinutes}m
-                                  </span>
+                                  {act.estimatedDurationMinutes && (
+                                    <span style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                                      {act.estimatedDurationMinutes}m
+                                    </span>
+                                  )}
                                 </div>
-                                <p style={{ color: '#ffffff', fontSize: '0.95rem', fontWeight: '600', marginBottom: '4px' }}>
+                                <p style={{ color: '#0f172a', fontSize: '0.92rem', fontWeight: '600', margin: '0 0 4px 0' }}>
                                   {act.title}
                                 </p>
                                 {act.description && (
-                                  <p style={{ color: '#cbd5e1', fontSize: '0.85rem', marginBottom: '6px', lineHeight: '1.3' }}>
+                                  <p style={{ color: '#475569', fontSize: '0.82rem', margin: '0 0 6px 0', lineHeight: '1.4' }}>
                                     {act.description}
                                   </p>
                                 )}
-                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.8rem', color: '#94a3b8', flexWrap: 'wrap' }}>
-                                  {act.location?.name && <span>📍 {act.location.name}</span>}
-                                  <span>💰 ₹{act.estimatedCost}</span>
+                                <div style={{ display: 'flex', gap: '12px', fontSize: '0.78rem', color: '#64748b', flexWrap: 'wrap' }}>
+                                  {act.location?.name && (
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                      <MapPin size={11} style={{ color: '#ea580c' }} /> {act.location.name}
+                                    </span>
+                                  )}
+                                  {act.estimatedCost !== undefined && (
+                                    <span>₹{Number(act.estimatedCost).toLocaleString('en-IN')}</span>
+                                  )}
                                 </div>
                               </div>
                             ))}
@@ -531,9 +644,9 @@ export default function ItineraryCompare() {
           </div>
         )}
 
-        <div className="auth-footer" style={{ textAlign: 'center', marginTop: '20px' }}>
-          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-secondary btn-sm">
-            ← Back to Itineraries
+        <div style={{ textAlign: 'center', marginTop: '24px' }}>
+          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-action-btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowLeft size={16} /> Back to Itineraries
           </Link>
         </div>
       </div>

@@ -2,6 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/axios.js';
 import { formatDateToDisplay } from '../utils/dateUtils.js';
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  MapPin,
+  CheckCircle2,
+  Circle,
+  Star,
+  Loader2
+} from 'lucide-react';
 
 /**
  * 🗺️ ItineraryDetails Page Component: Displays activities for a specific itinerary candidate.
@@ -67,125 +77,203 @@ export default function ItineraryDetails() {
   const sortedDayNumbers = Object.keys(groupedActivities).map(Number).sort((a, b) => a - b);
 
   return (
-    <div className="landing-container" style={{ padding: '40px 20px' }}>
-      <div className="glass-card" style={{ maxWidth: '680px', width: '100%', textAlign: 'left' }}>
-        <div className="badge">🗺️ Itinerary Candidate View</div>
-
-        {loading && (
-          <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px' }}>
-            <p>Loading itinerary schedule...</p>
+    <div className="tp-workspace-subpage">
+      <div className="tp-subpage-container" style={{ maxWidth: '820px' }}>
+        {/* Header */}
+        <div className="tp-subpage-header">
+          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-subpage-back-link">
+            <ArrowLeft size={16} />
+            <span>Back to All Candidates</span>
+          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                fontWeight: '600',
+                padding: '3px 10px',
+                borderRadius: '50px',
+                background: 'rgba(234, 88, 12, 0.08)',
+                color: '#ea580c',
+                border: '1px solid rgba(234, 88, 12, 0.18)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              <Calendar size={12} /> Candidate Schedule
+            </span>
           </div>
-        )}
 
-        {!loading && error && (
-          <div className="alert alert-error">{error}</div>
-        )}
-
-        {!loading && !error && itinerary && (
-          <div>
-            <div style={{ marginBottom: '20px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-                <h1 className="page-title" style={{ fontSize: '2rem', margin: 0 }}>
+          {itinerary && (
+            <div style={{ marginTop: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <h1 className="tp-subpage-title" style={{ margin: 0 }}>
                   {itinerary.title}
                 </h1>
                 {itinerary.isActive && (
                   <span
                     style={{
-                      fontSize: '0.75rem',
+                      fontSize: '0.72rem',
                       fontWeight: '700',
-                      padding: '4px 10px',
+                      padding: '3px 10px',
                       borderRadius: '50px',
-                      background: 'rgba(56, 189, 248, 0.25)',
-                      color: '#38bdf8',
-                      border: '1px solid rgba(56, 189, 248, 0.4)'
+                      background: 'rgba(234, 88, 12, 0.1)',
+                      color: '#ea580c',
+                      border: '1px solid rgba(234, 88, 12, 0.25)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px'
                     }}
                   >
-                    ⭐ Active Itinerary
+                    <Star size={11} /> Active Itinerary
                   </span>
                 )}
               </div>
-              <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>
-                {itinerary.source === 'AI_GENERATED' ? '✨ AI Generated' : '✍️ Manual Plan'} • Created {formatDateToDisplay(itinerary.createdAt)}
+              <p className="tp-subpage-subtitle" style={{ margin: '4px 0 0 0' }}>
+                {itinerary.source === 'AI_GENERATED' ? 'Smart Plan' : 'Manual Plan'} • Created {formatDateToDisplay(itinerary.createdAt)}
               </p>
             </div>
+          )}
+        </div>
 
+        {loading && (
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid rgba(15, 23, 42, 0.08)',
+              borderRadius: '16px',
+              padding: '48px 24px',
+              textAlign: 'center'
+            }}
+          >
+            <Loader2 size={28} className="animate-spin" style={{ color: '#ea580c', margin: '0 auto 12px auto' }} />
+            <p style={{ color: '#64748b', fontSize: '0.92rem', margin: 0 }}>Loading itinerary schedule...</p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div
+            style={{
+              padding: '14px 18px',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              color: '#991b1b',
+              fontSize: '0.9rem'
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && itinerary && (
+          <div>
             {activities.length === 0 ? (
-              <div className="placeholder-box" style={{ textAlign: 'center', padding: '32px 20px' }}>
-                <p style={{ color: '#cbd5e1' }}>No activities found for this candidate.</p>
+              <div
+                style={{
+                  background: '#ffffff',
+                  border: '1px dashed rgba(15, 23, 42, 0.15)',
+                  borderRadius: '16px',
+                  padding: '48px 24px',
+                  textAlign: 'center'
+                }}
+              >
+                <p style={{ color: '#64748b', fontSize: '0.92rem', margin: 0 }}>No activities found for this candidate.</p>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginBottom: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '24px' }}>
                 {sortedDayNumbers.map((dayNum) => (
                   <div
                     key={dayNum}
-                    className="placeholder-box"
-                    style={{ marginBottom: '0', textAlign: 'left', borderStyle: 'solid' }}
+                    style={{
+                      background: '#ffffff',
+                      border: '1px solid rgba(15, 23, 42, 0.08)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      boxShadow: '0 2px 10px rgba(15, 23, 42, 0.02)'
+                    }}
                   >
-                    <h3
+                    <div
                       style={{
-                        color: '#ffffff',
-                        fontSize: '1.2rem',
-                        marginBottom: '12px',
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                        paddingBottom: '8px'
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingBottom: '12px',
+                        marginBottom: '16px',
+                        borderBottom: '1px solid rgba(15, 23, 42, 0.06)'
                       }}
                     >
-                      Day {dayNum}
-                    </h3>
+                      <h3 style={{ color: '#0f172a', fontSize: '1.15rem', fontWeight: '700', margin: 0 }}>
+                        Day {dayNum}
+                      </h3>
+                      <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: '500' }}>
+                        {groupedActivities[dayNum]?.length || 0} activities
+                      </span>
+                    </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {groupedActivities[dayNum].map((act) => (
                         <div
                           key={act._id}
                           style={{
-                            background: act.isCompleted ? 'rgba(34, 197, 94, 0.08)' : 'rgba(15, 23, 42, 0.6)',
+                            background: act.isCompleted ? 'rgba(240, 253, 244, 0.7)' : '#f8fafc',
                             padding: '14px 18px',
                             borderRadius: '12px',
                             border: act.isCompleted
-                              ? '1px solid rgba(34, 197, 94, 0.3)'
-                              : '1px solid rgba(255, 255, 255, 0.08)'
+                              ? '1px solid #bbf7d0'
+                              : '1px solid rgba(15, 23, 42, 0.06)'
                           }}
                         >
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                            <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.85rem' }}>
-                              ⏰ {formatTimeTo12Hour(act.time) || 'Schedule'}
+                            <span style={{ color: '#ea580c', fontWeight: '700', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                              <Clock size={13} /> {formatTimeTo12Hour(act.time) || 'Flexible Time'}
                             </span>
                             <span
                               style={{
-                                fontSize: '0.75rem',
+                                fontSize: '0.72rem',
                                 fontWeight: '600',
-                                padding: '3px 10px',
+                                padding: '3px 9px',
                                 borderRadius: '50px',
-                                background: act.isCompleted ? 'rgba(34, 197, 94, 0.2)' : 'rgba(148, 163, 184, 0.15)',
-                                color: act.isCompleted ? '#86efac' : '#94a3b8'
+                                background: act.isCompleted ? '#dcfce7' : 'rgba(15, 23, 42, 0.06)',
+                                color: act.isCompleted ? '#166534' : '#64748b',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
                               }}
                             >
-                              {act.isCompleted ? '✓ Completed' : '○ Pending'}
+                              {act.isCompleted ? <><CheckCircle2 size={11} /> Completed</> : <><Circle size={11} /> Pending</>}
                             </span>
                           </div>
 
                           <h4
                             style={{
-                              color: act.isCompleted ? '#94a3b8' : '#ffffff',
-                              fontSize: '1.05rem',
+                              color: act.isCompleted ? '#64748b' : '#0f172a',
+                              fontSize: '1rem',
+                              fontWeight: '700',
                               marginBottom: '4px',
                               textDecoration: act.isCompleted ? 'line-through' : 'none'
                             }}
                           >
-                            {act.isCompleted ? `✓ ${act.title}` : `○ ${act.title}`}
+                            {act.title}
                           </h4>
 
                           {act.description && (
-                            <p style={{ color: '#cbd5e1', fontSize: '0.875rem', marginBottom: '8px', lineHeight: '1.4' }}>
+                            <p style={{ color: '#475569', fontSize: '0.875rem', marginBottom: '8px', lineHeight: '1.5' }}>
                               {act.description}
                             </p>
                           )}
 
-                          <div style={{ display: 'flex', gap: '16px', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' }}>
-                            {act.location?.name && <span>📍 {act.location.name}</span>}
-                            {act.estimatedCost !== undefined && <span>💰 ₹{act.estimatedCost}</span>}
+                          <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', color: '#64748b', flexWrap: 'wrap' }}>
+                            {act.location?.name && (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <MapPin size={12} style={{ color: '#ea580c' }} /> {act.location.name}
+                              </span>
+                            )}
+                            {act.estimatedCost !== undefined && (
+                              <span>Cost: <strong>₹{Number(act.estimatedCost).toLocaleString('en-IN')}</strong></span>
+                            )}
                             {act.estimatedDurationMinutes !== undefined && (
-                              <span>⏱️ {act.estimatedDurationMinutes} min</span>
+                              <span>Duration: <strong>{act.estimatedDurationMinutes} min</strong></span>
                             )}
                           </div>
                         </div>
@@ -198,12 +286,12 @@ export default function ItineraryDetails() {
           </div>
         )}
 
-        <div className="auth-footer" style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '16px', flexWrap: 'wrap' }}>
-          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="btn btn-secondary btn-sm">
-            ← Back to All Candidates
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px', flexWrap: 'wrap' }}>
+          <Link to={`/dashboard/trip/${tripId}/itineraries`} className="tp-action-btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <ArrowLeft size={16} /> Back to All Candidates
           </Link>
-          <Link to={`/dashboard/trip/${tripId}`} className="btn btn-secondary btn-sm">
-            Trip Details
+          <Link to={`/dashboard/trip/${tripId}`} className="tp-action-btn-secondary">
+            Trip Workspace
           </Link>
         </div>
       </div>
